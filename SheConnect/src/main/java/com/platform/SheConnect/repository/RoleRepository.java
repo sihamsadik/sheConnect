@@ -1,6 +1,6 @@
-package com.yourpackage.sheconnect.repository;
+package com.platform.SheConnect.repository;
 
-import com.yourpackage.sheconnect.entity.Role;
+import com.platform.SheConnect.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
