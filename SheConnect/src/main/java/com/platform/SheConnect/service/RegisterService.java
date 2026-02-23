@@ -1,3 +1,12 @@
+package com.platform.SheConnect.service;
+ 
+ import com.platform.SheConnect.entity.Role;
+ import com.platform.SheConnect.entity.User;
+ import com.platform.SheConnect.repository.RoleRepository;
+ import com.platform.SheConnect.service.UserService;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+ import org.springframework.stereotype.Service;
 @Service
 public class RegisterService {
 
