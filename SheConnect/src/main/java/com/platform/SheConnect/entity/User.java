@@ -21,8 +21,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
     @NotBlank
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$", message = "Password must contain at least one letter and one number")
+    // @Size(min = 8, message = "Password must be at least 8 characters long")
+    // @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$", message = "Password must contain at least one letter and one number")
     @Column(nullable = false)
     private String password;
     @ManyToOne

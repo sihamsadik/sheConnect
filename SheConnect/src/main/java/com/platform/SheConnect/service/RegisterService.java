@@ -1,0 +1,57 @@
+@Service
+public class RegisterService {
+
+    private final UserService userService;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public RegisterService(UserService userService,
+                           RoleRepository roleRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    private boolean isStrongPassword(String password) {
+        if (password == null) return false;
+        if (password.length() < 8) return false;
+        if (!password.matches(".*[A-Z].*")) return false;
+        if (!password.matches(".*[a-z].*")) return false;
+        if (!password.matches(".*\\d.*")) return false;
+        if (!password.matches(".*[!@#$%^&*()].*")) return false;
+        return true;
+    }
+
+    public User register(User user) {
+
+        // 1️⃣ Basic validation
+        if (user.getName() == null || user.getName().isEmpty()) {
+            throw new RuntimeException("Name required");
+        }
+
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            throw new RuntimeException("Email required");
+        }
+
+        if (!isStrongPassword(user.getPassword())) {
+            throw new RuntimeException("Weak password");
+        }
+
+        // 2️⃣ Check email already exists
+        if (userService.findUserByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already used");
+        }
+
+        // 3️⃣ Get role from DB
+        Role role = roleRepository.findByName(user.getRole().getName())
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        // 4️⃣ Encrypt password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(role);
+
+        // 5️⃣ Save
+        return userService.saveUser(user);
+    }
+}
