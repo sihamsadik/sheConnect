@@ -1,6 +1,6 @@
-# 💜 SheConnect
+# 🌍 SheConnect
 
-## 🌍 About SheConnect
+##  About SheConnect
 
 **SheConnect** is a full-stack web platform designed to empower, connect, and support women by creating a digital space where they can collaborate, share opportunities, and grow together.
 
