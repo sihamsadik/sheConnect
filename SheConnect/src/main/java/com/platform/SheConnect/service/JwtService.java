@@ -1,32 +1,95 @@
-package com.platform.SheConnect.security;
+package com.platform.SheConnect.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.security.Key;
 import java.util.Date;
 
-
 @Service
 public class JwtService {
+
     @Value("${jwt.secret}")
     private String secretKey;
+
     @Value("${jwt.expiration}")
-    private long expirationTime;
+    private long expiration;
+
+    // 🔐 Generate Token
     public String generateToken(String email, String role) {
-        // Implement JWT token generation logic here
-        
+
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        // Use a JWT library like io.jsonwebtoken.Jwts to create the token
-        String token = Jwts.builder()
-                .setSubject(email)
-                .claim("role",role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(key, SignatureAlgorithm.HS512)
+
+        return Jwts.builder()
+                .setSubject(email)                // user identity
+                .claim("role", role)              // custom claim
+                .claim("name", name)              // custom claim
+                .setIssuedAt(new Date())          // created now
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-        return token;  
+    }
+
+    // 📥 Extract Email
+    public String extractEmail(String token) {
+
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
+    }
+
+    // 📥 Extract Role
+    public String extractRole(String token) {
+
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("role", String.class);
+    }
+    public String extractName(String token) {
+
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("name", String.class);
+    }
+
+    // ✅ Validate Token
+    public boolean validateToken(String token) {
+
+        try {
+            Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
