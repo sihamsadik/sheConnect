@@ -1,5 +1,5 @@
-💜 SheConnect
-🌍 About SheConnect
+ #🌍 SheConnect
+ #About SheConnect
 SheConnect is a full-stack web platform designed to empower, connect, and support women by creating a digital space where they can collaborate, share opportunities, and grow together.
 
 The platform aims to bridge gaps in communication, networking, and access to resources by providing a safe and structured environment for connection and professional development.
@@ -12,7 +12,7 @@ SheConnect is built as both:
 
 🔗 A real-world integration engineering system
 
-🎯 Project Vision
+#🎯 Project Vision
 Our vision with SheConnect is to:
 
 Encourage collaboration among women
@@ -40,7 +40,7 @@ Stores user data, posts, messages, and platform content.
 Integration Layer
 Connects frontend, backend, and external services to ensure smooth communication between systems.
 
-✨ Core Features
+#✨ Core Features
 User registration & authentication
 
 User profiles
@@ -55,7 +55,7 @@ REST API integration
 
 Database persistence
 
-🧠 Engineering Goals
+#🧠 Engineering Goals
 Through SheConnect, we aim to learn and implement:
 
 Clean architecture principles
