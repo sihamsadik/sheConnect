@@ -20,16 +20,16 @@ public class LoginService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User authenticate(String email, String password) {
-        User user = userService.findUserByEmail(email)
+    public LoginResponse authenticate(LoginRequest request) {
+        User user = userService.findUserByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
 
-        return user;
+        return new LoginResponse(user.getName(), user.getEmail(), user.getRole());
     }
 
 }
