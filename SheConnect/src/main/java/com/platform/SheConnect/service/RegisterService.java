@@ -8,7 +8,10 @@ import com.platform.SheConnect.entity.Role;
  import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  import org.springframework.stereotype.Service;
- 
+ import com.platform.SheConnect.service.JwtService;
+import com.platform.SheConnect.dto.LoginResponse;
+import com.platform.SheConnect.dto.RegisterResquest;
+
 @Service
 public class RegisterService {
 
@@ -34,7 +37,7 @@ public class RegisterService {
         return true;
     }
 
-    public User register(User user) {
+    public RegisterResponse register(User user) {
 
         // 1️⃣ Basic validation
         if (user.getName() == null || user.getName().isEmpty()) {
@@ -63,6 +66,7 @@ public class RegisterService {
         user.setRole(role);
 
         // 5️⃣ Save
-        return userService.saveUser(user);
+        User savedUser = userService.saveUser(user);
+        return new LoginResponse(savedUser.getName(), savedUser.getEmail(), savedUser.getRole().getName(), jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().getName()));
     }
 }

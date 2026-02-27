@@ -12,7 +12,7 @@ import com.platform.SheConnect.service.LoginService;
 
 import com.platform.SheConnect.dto.LoginRequest;
 import com.platform.SheConnect.dto.LoginResponse;
-// import com.platform.SheConnect.dto.RegisterRequest;
+import com.platform.SheConnect.dto.RegisterRequest;
 import com.platform.SheConnect.entity.User;
 
 
@@ -29,7 +29,7 @@ public class AuthController {
         this.loginService = loginService;
     }
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest request) {
         LoginResponse response = registerService.register(request);
         return ResponseEntity.ok(response);
     }
