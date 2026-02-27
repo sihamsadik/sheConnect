@@ -3,6 +3,10 @@ package com.platform.SheConnect.security;
 
 import com.platform.SheConnect.service.JwtService;
 import com.platform.SheConnect.service.UserService;
+
+import io.jsonwebtoken.io.IOException;
+import io.jsonwebtoken.lang.Collections;
+
 import com.platform.SheConnect.entity.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 

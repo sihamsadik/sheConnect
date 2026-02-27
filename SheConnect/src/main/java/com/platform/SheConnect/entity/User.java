@@ -28,4 +28,8 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id",nullable = false)
     private Role role;
+    public String getName() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getName'");
+    }
 }

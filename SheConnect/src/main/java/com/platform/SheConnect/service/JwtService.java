@@ -28,7 +28,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(email)                // user identity
                 .claim("role", role)              // custom claim
-                .claim("name", name)              // custom claim
+                // .claim("name", Name)              // custom claim
                 .setIssuedAt(new Date())          // created now
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key, SignatureAlgorithm.HS256)
