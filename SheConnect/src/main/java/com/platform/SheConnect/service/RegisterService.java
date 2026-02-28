@@ -40,36 +40,43 @@ public class RegisterService {
         return true;
     }
 
-    public LoginResponse register(User user) {
+    public LoginResponse register(RegisterRequest request) {
 
         // 1️⃣ Basic validation
-        if (user.getName() == null || user.getName().isEmpty()) {
+        if (request.getName() == null || request.getName().isEmpty()) {
             throw new RuntimeException("Name required");
         }
 
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
             throw new RuntimeException("Email required");
         }
 
-        if (!isStrongPassword(user.getPassword())) {
+        if (!isStrongPassword(request.getPassword())) {
             throw new RuntimeException("Weak password");
         }
 
         // 2️⃣ Check email already exists
-        if (userService.findUserByEmail(user.getEmail()).isPresent()) {
+        if (userService.findUserByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already used");
         }
 
         // 3️⃣ Get role from DB
-        Role role = roleRepository.findByName(user.getRole().getName())
+        Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         // 4️⃣ Encrypt password
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        request.setRole(role.getName());
+                
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
 
-        // 5️⃣ Save
         User savedUser = userService.saveUser(user);
+
+        
         return new LoginResponse(savedUser.getName(), savedUser.getEmail(), savedUser.getRole().getName(), jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().getName()));
     }
 }

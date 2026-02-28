@@ -4,8 +4,9 @@ package com.platform.SheConnect.security;
 import com.platform.SheConnect.service.JwtService;
 import com.platform.SheConnect.service.UserService;
 
-import io.jsonwebtoken.io.IOException;
-import io.jsonwebtoken.lang.Collections;
+import java.io.IOException;
+// import io.jsonwebtoken.lang.Collections;
+import java.util.Collections;
 
 import com.platform.SheConnect.entity.User;
 import jakarta.servlet.FilterChain;

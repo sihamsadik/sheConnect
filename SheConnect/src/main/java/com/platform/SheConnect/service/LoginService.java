@@ -20,19 +20,18 @@ public class LoginService {
     public LoginService(UserService userService, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = new JwtService();
+        this.jwtService = jwtService;
     }
 
     public LoginResponse authenticate(LoginRequest request) {
         User user = userService.findUserByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
-        }
+if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+    throw new RuntimeException("Invalid credentials");
+}
 
-
-        return new LoginResponse(user.getName(), user.getEmail(), user.getRole().getName(),jwtService.generateToken(user.getEmail(), user.getRole().getName()));
+        return new LoginResponse(user.getName(), user.getEmail(), user.getRole().getName(), jwtService.generateToken(user.getEmail(), user.getRole().getName()));
     }
 
 }
