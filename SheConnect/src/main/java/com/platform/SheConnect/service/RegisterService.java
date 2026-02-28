@@ -10,21 +10,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  import org.springframework.stereotype.Service;
  import com.platform.SheConnect.service.JwtService;
 import com.platform.SheConnect.dto.LoginResponse;
-import com.platform.SheConnect.dto.RegisterResquest;
+import com.platform.SheConnect.dto.RegisterRequest;
 
 @Service
 public class RegisterService {
 
+    private final JwtService jwtService;
     private final UserService userService;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public RegisterService(UserService userService,
+    public RegisterService(JwtService jwtService,
+                           UserService userService,
                            RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     private boolean isStrongPassword(String password) {
@@ -37,7 +40,7 @@ public class RegisterService {
         return true;
     }
 
-    public RegisterResponse register(User user) {
+    public LoginResponse register(User user) {
 
         // 1️⃣ Basic validation
         if (user.getName() == null || user.getName().isEmpty()) {
