@@ -29,6 +29,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/login", "/auth/register", "/Home").permitAll()
+            .requestMatchers("/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")
             .anyRequest().authenticated()
         );
 

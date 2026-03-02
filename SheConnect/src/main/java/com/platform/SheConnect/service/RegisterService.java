@@ -65,7 +65,7 @@ public class RegisterService {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         // 4️⃣ Encrypt password
-        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        // request.setPassword(passwordEncoder.encode(request.getPassword()));
         request.setRole(role.getName());
                 
         User user = new User();
