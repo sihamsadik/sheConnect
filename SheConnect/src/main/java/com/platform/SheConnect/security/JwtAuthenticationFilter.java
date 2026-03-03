@@ -1,7 +1,7 @@
 package com.platform.SheConnect.security;
 
 
-import com.platform.SheConnect.service.JwtService;
+import com.platform.SheConnect.security.JwtService;
 import com.platform.SheConnect.service.UserService;
 
 import java.io.IOException;

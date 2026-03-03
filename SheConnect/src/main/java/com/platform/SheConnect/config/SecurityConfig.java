@@ -30,6 +30,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/login", "/auth/register", "/Home").permitAll()
             .requestMatchers("/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")
+            .requestMatchers("/Admin/**").hasAuthority("ROLE_ADMIN")
+            .requestMatchers("/Investor/**").hasAuthority("ROLE_INVESTOR")
             .anyRequest().authenticated()
         );
 

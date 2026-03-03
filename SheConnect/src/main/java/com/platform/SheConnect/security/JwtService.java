@@ -1,4 +1,4 @@
-package com.platform.SheConnect.service;
+package com.platform.SheConnect.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
