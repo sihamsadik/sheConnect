@@ -21,7 +21,7 @@ public class JwtService {
     private long expiration;
 
     // 🔐 Generate Token
-    public String generateToken(String email, String role) {
+    public String generateAccessToken(String email, String role) {
 
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
@@ -34,7 +34,32 @@ public class JwtService {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+    
+    public String extractAccessTokenFromRefresh(String refreshToken) {
 
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(refreshToken)
+                .getBody();
+
+        return claims.get("accessToken", String.class);
+    }
+    public String extractUserIdFromRefresh(String refreshToken) {
+
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(refreshToken)
+                .getBody();
+
+        return claims.getSubject();
+    }
+        
     // 📥 Extract Email
     public String extractEmail(String token) {
 
@@ -80,6 +105,21 @@ public class JwtService {
 
         try {
             Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    public boolean validateRefreshToken(String token){
+        try{
+            Key key =  Keys.hmacShaKeyFor(secretKey.getBytes());
 
             Jwts.parserBuilder()
                     .setSigningKey(key)
