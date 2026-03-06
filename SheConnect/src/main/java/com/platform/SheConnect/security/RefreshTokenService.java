@@ -35,33 +35,32 @@ public class RefreshTokenService {
 
     public RefreshToken createRefreshToken(User user) {
         String tokenValue = UUID.randomUUID().toString();
-        Long userId = user.getId();
-
-        RefreshToken refreshToken = new RefreshToken(
-                tokenValue,
-                LocalDateTime.now().plusDays(REFRESH_DURATION_DAYS),
-                user
-                
-                
-        );
-
+       
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken(tokenValue);
+        refreshToken.setUser(user);
+        refreshToken.setExpiryDate(LocalDateTime.now().plusDays(REFRESH_DURATION_DAYS));
         return repository.save(refreshToken);
 
 
-      
-
+    }
+    public  void deleteRefreshToken(String token) {
+        repository.deleteByToken(token);
+        
 
     }
+     public RefreshToken validateRefreshToken(String token) {
+        RefreshToken refreshToken = repository.findByToken(token);
+       if (refreshToken == null) {
+           throw new RuntimeException("Invalid refresh token");
+       }
 
-    // public String getAccessTokenFromRefresh(String refreshToken) {
-    //     return jwtService.extractAccessTokenFromRefresh(refreshToken);
-    // }
+        if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token expired");
+        }
 
-    // public Long getUserIdFromRefresh(String refreshToken) {
-    //     return Long.valueOf(jwtService.extractUserIdFromRefresh(refreshToken));
-    // }
-
-    // public boolean validateRefreshToken(String refreshToken) {
-    //     return jwtService.validateRefreshToken(refreshToken);
-    // }
+    return refreshToken;
 }
+    }
+
+
