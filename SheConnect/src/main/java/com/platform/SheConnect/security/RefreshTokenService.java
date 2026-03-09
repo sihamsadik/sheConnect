@@ -14,6 +14,7 @@ import com.platform.SheConnect.security.JwtService;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.transaction.Transactional;
 import io.jsonwebtoken.SignatureAlgorithm;
 import com.platform.SheConnect.entity.RefreshToken;
 import io.jsonwebtoken.security.Keys;
@@ -44,12 +45,14 @@ public class RefreshTokenService {
 
 
     }
+    @Transactional
     public  void deleteRefreshToken(String token) {
+        System.out.println("Deleting refresh token: " + token);
         repository.deleteByToken(token);
-        
-
     }
-     public RefreshToken validateRefreshToken(String token) {
+
+    @Transactional
+    public RefreshToken validateRefreshToken(String token) {
         RefreshToken refreshToken = repository.findByToken(token);
        if (refreshToken == null) {
            throw new RuntimeException("Invalid refresh token");
