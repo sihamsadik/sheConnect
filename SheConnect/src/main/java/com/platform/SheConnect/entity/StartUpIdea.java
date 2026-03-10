@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties.Apiversion.Use;
+
 @Entity
 @Table(name= "startup_ideas")
 @Getter
@@ -36,6 +38,11 @@ public class StartUpIdea {
     @JoinColumn(name = "entrepreneur_need_id", nullable = false)
     
     private EntrepreneurNeed lookingFor;
+    @OneToMany
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

@@ -25,6 +25,8 @@ public class User {
     // @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$", message = "Password must contain at least one letter and one number")
     @Column(nullable = false)
     private String password;
+    
+   
     @ManyToOne
     @JoinColumn(name = "role_id",nullable = false)
     private Role role;
