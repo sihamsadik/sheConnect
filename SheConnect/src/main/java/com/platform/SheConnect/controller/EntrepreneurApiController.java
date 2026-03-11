@@ -16,6 +16,7 @@ import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.repository.UserRepository;
 import com.platform.SheConnect.service.DashboardService;
 import com.platform.SheConnect.service.StartUpIdeaService;
 
@@ -24,16 +25,25 @@ import com.platform.SheConnect.service.StartUpIdeaService;
 public class EntrepreneurApiController {
     private final StartUpIdeaService startUpIdeaService;
     private final DashboardService dashboardService;
+    private final UserRepository userRepository;
 
-    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService) {
+    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository) {
         this.startUpIdeaService = startUpIdeaService;
         this.dashboardService = dashboardService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/startup-ideas")
     public ResponseEntity<StartUpIdeaResponse> createStartUpIdea(Authentication authentication,
             @RequestBody CreateStartUpIdeaRequest request) {
         User user = (User) authentication.getPrincipal();
+        String userEmail = user.getEmail();
+        
+        user = userRepository.findByEmail(userEmail).orElse(null);
+        
+        if (user == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         StartUpIdea idea = startUpIdeaService.create(user, request);
         List<String> lookingFor = idea.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
