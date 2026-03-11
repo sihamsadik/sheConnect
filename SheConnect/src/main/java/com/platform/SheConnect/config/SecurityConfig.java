@@ -26,12 +26,13 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     http
         .csrf(csrf -> csrf.disable())
+        .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 console
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/auth/login", "/auth/register", "/Home").permitAll()
-            .requestMatchers("/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")
-            .requestMatchers("/Advisor/**").hasAuthority("ROLE_ADIVISOR")
-            .requestMatchers("/Investor/**").hasAuthority("ROLE_INVESTOR")
+            .requestMatchers("/auth/**", "/Home", "/h2-console/**").permitAll()
+            .requestMatchers("/api/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")
+            .requestMatchers("/api/advisor/**").hasAuthority("ROLE_ADVISOR")
+            .requestMatchers("/api/investor/**").hasAuthority("ROLE_INVESTOR")
             .anyRequest().authenticated()
         );
 
