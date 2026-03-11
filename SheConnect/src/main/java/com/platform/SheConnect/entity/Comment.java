@@ -15,8 +15,13 @@ public class Comment {
    private Long id;
    @Column(nullable = false,length = 1000)
     private String comment;
-    @OneToMany
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name ="user_id", nullable = false)
     private User user;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "startup_idea_id", nullable = false)
+    private StartUpIdea startupIdea;
     
 }
