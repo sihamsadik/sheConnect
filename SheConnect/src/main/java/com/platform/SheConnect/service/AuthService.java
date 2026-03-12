@@ -88,11 +88,10 @@ if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
-         RefreshToken refreshToken =
-             refreshTokenService.createRefreshToken(user);
 
         User savedUser = userService.saveUser(user);
-
+         RefreshToken refreshToken =
+             refreshTokenService.createRefreshToken(savedUser);
 
         return new LoginResponse(savedUser.getName(), savedUser.getEmail(), savedUser.getRole().getName(), jwtService.generateAccessToken(savedUser.getEmail(), savedUser.getRole().getName()), refreshToken);
     }

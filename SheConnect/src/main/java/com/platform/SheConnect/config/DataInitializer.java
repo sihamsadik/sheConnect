@@ -38,9 +38,11 @@ public class DataInitializer implements CommandLineRunner {
             roleRepository.save(new Role(null, "ADVISOR"));
         }
         if (entrepreneurNeedRepository.findByName("INVESTOR").isEmpty()) {
+            System.out.println("Creating default entrepreneur needs...");
             entrepreneurNeedRepository.save(new EntrepreneurNeed(null, "INVESTOR"));
         }
         if (entrepreneurNeedRepository.findByName("ADVISOR").isEmpty()) {
+            System.out.println("Creating default entrepreneur needs...");
             entrepreneurNeedRepository.save(new EntrepreneurNeed(null, "ADVISOR"));
         }
         if (entrepreneurNeedRepository.findByName("BOTH").isEmpty()) {
@@ -50,6 +52,7 @@ public class DataInitializer implements CommandLineRunner {
             industryRepository.save(new Industry(null, "FINTECH"));
         }
         if (industryRepository.findByName("HEALTHCARE").isEmpty()) {
+            System.out.println("Creating default industries...");
             industryRepository.save(new Industry(null, "HEALTHCARE"));
         }
         if (industryRepository.findByName("EDUCATION").isEmpty()) {

@@ -61,6 +61,7 @@ public class StartUpIdeaService {
         idea.setSolution(request.getSolution().trim());
         idea.setTargetMarket(request.getTargetMarket().trim());
         idea.setIndustry(industry);
+        idea.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
         idea.setLookingFor(lookingFor);
         idea.setUser(user);
 
