@@ -50,6 +50,7 @@ public class EntrepreneurApiController {
 
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
+                idea.getUser(),
                 idea.getTitle(),
                 idea.getIndustry().getName(),
                 lookingFor));
