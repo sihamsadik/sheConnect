@@ -95,7 +95,18 @@ public class EntrepreneurApiController {
     @GetMapping("/my-ideas")
     public ResponseEntity<List<StartUpIdeaResponse>> myStartUpIdea(Authentication authentication) {
         User user = (User)authentication.getPrincipal();
-        List<StartUpIdea> userIdeas = startUpIdeaService.
+        List<StartUpIdea> userIdeas = startUpIdeaService.MyIdeas(user);
+        List<StartUpIdeaResponse> response = userIdeas.stream().map(i -> new StartUpIdeaResponse(
+            i.getId(),
+            i.getUser(),
+            i.getTitle(),
+            i.getIndustry().getName(),
+            i.getLookingFor().stream().map(n -> n.getName()).sorted().toList(),
+            i.getUpdatedAt(),
+            i.getCreatedAt(),
+            user
+        )).toList();
+        return ResponseEntity.ok(response);
     }
     
 }
