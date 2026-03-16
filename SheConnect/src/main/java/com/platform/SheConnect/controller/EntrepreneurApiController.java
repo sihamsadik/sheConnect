@@ -33,7 +33,7 @@ public class EntrepreneurApiController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/startup-ideas")
+    @PostMapping("/createstartup-ideas")
     public ResponseEntity<StartUpIdeaResponse> createStartUpIdea(Authentication authentication,
             @RequestBody CreateStartUpIdeaRequest request) {
         User user = (User) authentication.getPrincipal();
@@ -50,10 +50,11 @@ public class EntrepreneurApiController {
 
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
-                idea.getUser(),
+                user,
                 idea.getTitle(),
                 idea.getIndustry().getName(),
-                lookingFor));
+                lookingFor,
+                idea.getUser()));
     }
 
     @GetMapping("/dashboard")
@@ -74,6 +75,6 @@ public class EntrepreneurApiController {
                         i.getLikes() == null ? 0 : i.getLikes()))
                 .toList();
 
-        return ResponseEntity.ok(new DashboardResponse(ideaCount, totalLikes, totalComments, engagementRate, ideas));
+        return ResponseEntity.ok(new DashboardResponse(ideaCount,user, totalLikes, totalComments, engagementRate, ideas));
     }
 }

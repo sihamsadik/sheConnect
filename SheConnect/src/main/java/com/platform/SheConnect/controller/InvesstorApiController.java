@@ -23,6 +23,7 @@ public class InvesstorApiController {
     @GetMapping("/startup_ideas")
     public ResponseEntity<List<StartUpIdeaResponse>> getAllStartUpIdea(Authentication authentication){
         User user = (User) authentication.getPrincipal();
+        List<StartUpIdea>  idea = startUpIdeaService.
         
     }
     

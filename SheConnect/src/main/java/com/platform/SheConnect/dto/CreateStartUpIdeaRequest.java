@@ -10,7 +10,7 @@ public class CreateStartUpIdeaRequest {
     private String industryName;
     private List<String> lookingFor;
     private String description;
-    private String userEmail;
+    // private String userEmail;
 
     public String getTitle() {
         return title;
@@ -26,12 +26,12 @@ public class CreateStartUpIdeaRequest {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getUserEmail() {
-        return userEmail;
-    }
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
+    // public String getUserEmail() {
+    //     return userEmail;
+    // }
+    // public void setUserEmail(String userEmail) {
+    //     this.userEmail = userEmail;
+    // }
 
     public String getProblem() {
         return problem;

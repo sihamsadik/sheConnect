@@ -9,14 +9,17 @@ public class StartUpIdeaResponse {
     private String title;
     private String industry;
     private List<String> lookingFor;
+    private User ideaAdmin;
     private User user;
 
-    public StartUpIdeaResponse(Long id,User user, String title, String industry, List<String> lookingFor) {
+
+    public StartUpIdeaResponse(Long id,User ideaAdmin, String title, String industry, List<String> lookingFor,User user) {
         this.id = id;
         this.title = title;
         this.industry = industry;
         this.lookingFor = lookingFor;
-        this.user = user;
+        this.ideaAdmin = ideaAdmin;
+        this.user =user;
     }
 
     public Long getId() {
@@ -24,6 +27,9 @@ public class StartUpIdeaResponse {
     }
     public User getUser(){
         return user;
+    }
+    public User getIdeaAdmin(){
+        return ideaAdmin;
     }
 
     public String getTitle() {
