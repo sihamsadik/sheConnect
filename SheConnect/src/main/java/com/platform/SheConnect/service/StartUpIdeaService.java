@@ -1,6 +1,8 @@
 package com.platform.SheConnect.service;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -66,6 +68,13 @@ public class StartUpIdeaService {
         idea.setUser(user);
 
         return startUpIdeaRepository.save(idea);
+    }
+    public Optional<StartUpIdea> getStartUpIdeasById(long id){
+        
+      final Optional<StartUpIdea> ideaId = startUpIdeaRepository.findById(id);
+       return ideaId;
+        
+       
     }
 
     private static boolean isBlank(String s) {

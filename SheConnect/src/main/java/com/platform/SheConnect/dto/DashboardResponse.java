@@ -11,6 +11,7 @@ public class DashboardResponse {
     private double engagementRate;
     private List<StartUpIdeaSummary> ideas;
     private User user;
+    // add notification for recent activity 
 
     public DashboardResponse(long ideaCount,User user, int totalLikes, long totalComments, double engagementRate,
             List<StartUpIdeaSummary> ideas) {

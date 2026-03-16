@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.session.RequestedUrlRedirectInvalidSessionStrategy;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,4 +78,22 @@ public class EntrepreneurApiController {
 
         return ResponseEntity.ok(new DashboardResponse(ideaCount,user, totalLikes, totalComments, engagementRate, ideas));
     }
+    // by using the id from the url get startupidea
+    @GetMapping("/startup-ideas/"+id)
+    public ResponseEntity<StartUpIdeaResponse>  startUpIdeaId(Authentication authentication){
+        User user = (User)authentication.getPrincipal();
+       final StartUpIdea ideaId = startUpIdeaService.getStartUpIdeasById(RequestParam);
+       List<String> lookingFor = ideaId.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
+        return ResponseEntity.ok(new StartUpIdeaResponse(
+                ideaId.getId(),
+                ideaId.getUser(),
+                ideaId.getTitle(),
+                ideaId.getIndustry().getName(),
+                lookingFor,
+                user));
+
+
+        
+    }
+    
 }
