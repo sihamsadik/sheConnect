@@ -2,6 +2,7 @@ package com.platform.SheConnect.controller;
 
 import java.util.List;
 
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.session.RequestedUrlRedirectInvalidSessionStrategy;
@@ -55,6 +56,8 @@ public class EntrepreneurApiController {
                 idea.getTitle(),
                 idea.getIndustry().getName(),
                 lookingFor,
+                idea.getUpdatedAt(),
+                idea.getCreatedAt(),
                 idea.getUser()));
     }
 
@@ -80,20 +83,20 @@ public class EntrepreneurApiController {
     }
     // by using the id from the url get startupidea
     @GetMapping("/startup-ideas/"+id)
-    public ResponseEntity<StartUpIdeaResponse>  startUpIdeaId(Authentication authentication){
+    public ResponseEntity<StartUpIdea>  startUpIdeaId(Authentication authentication){
         User user = (User)authentication.getPrincipal();
        final StartUpIdea ideaId = startUpIdeaService.getStartUpIdeasById(RequestParam);
        List<String> lookingFor = ideaId.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
-        return ResponseEntity.ok(new StartUpIdeaResponse(
-                ideaId.getId(),
-                ideaId.getUser(),
-                ideaId.getTitle(),
-                ideaId.getIndustry().getName(),
-                lookingFor,
-                user));
+        return ResponseEntity.ok(ideaId);
 
 
         
     }
+    @GetMapping("/my-ideas")
+    public ResponseEntity<List<StartUpIdeaResponse>> myStartUpIdea(Authentication authentication) {
+        User user = (User)authentication.getPrincipal();
+        List<StartUpIdea> userIdeas = startUpIdeaService.
+    }
     
 }
+

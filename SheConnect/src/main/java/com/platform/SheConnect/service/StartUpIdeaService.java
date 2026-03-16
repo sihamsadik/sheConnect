@@ -76,6 +76,10 @@ public class StartUpIdeaService {
         
        
     }
+    public List<StartUpIdea> MyIdeas(User user){
+        List<StartUpIdea> userIdea = startUpIdeaRepository.findAllByUser(user);
+        return userIdea;
+    }
 
     private static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
