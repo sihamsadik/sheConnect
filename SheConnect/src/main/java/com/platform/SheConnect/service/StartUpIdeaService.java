@@ -69,9 +69,10 @@ public class StartUpIdeaService {
 
         return startUpIdeaRepository.save(idea);
     }
-    public Optional<StartUpIdea> getStartUpIdeasById(long id){
-        
-      final Optional<StartUpIdea> ideaId = startUpIdeaRepository.findById(id);
+    public StartUpIdea getStartUpIdeasById(long id){
+
+      final StartUpIdea ideaId = startUpIdeaRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Idea not found"));
        return ideaId;
         
        

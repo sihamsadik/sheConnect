@@ -1,5 +1,5 @@
-package com.platform.SheConnect.dto;
+// package com.platform.SheConnect.dto;
 
-public class InvestorDashboardResponse {
+// public class InvestorDashboardResponse {
     
-}
+// }

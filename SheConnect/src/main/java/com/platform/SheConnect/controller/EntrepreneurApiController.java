@@ -87,7 +87,7 @@ public class EntrepreneurApiController {
     @GetMapping("/startup-ideas/{id}")
     public ResponseEntity<StartUpIdeaResponse> startUpIdeaId(@PathVariable Long id, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Optional<StartUpIdea> idea = startUpIdeaService.getStartUpIdeasById(id);
+        StartUpIdea idea = (StartUpIdea) startUpIdeaService.getStartUpIdeasById(id);
         if (idea == null) {
             return ResponseEntity.notFound().build();
         }
