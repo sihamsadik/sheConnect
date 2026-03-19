@@ -18,8 +18,10 @@ import com.platform.SheConnect.dto.CreateStartUpIdeaRequest;
 import com.platform.SheConnect.dto.DashboardResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
+import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.UserRepository;
 import com.platform.SheConnect.service.DashboardService;
 import com.platform.SheConnect.service.StartUpIdeaService;
@@ -30,11 +32,13 @@ public class EntrepreneurApiController {
     private final StartUpIdeaService startUpIdeaService;
     private final DashboardService dashboardService;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
-    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository) {
+    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository) {
         this.startUpIdeaService = startUpIdeaService;
         this.dashboardService = dashboardService;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
     }
 
     @PostMapping("/createstartup-ideas")
@@ -51,6 +55,7 @@ public class EntrepreneurApiController {
 
         StartUpIdea idea = startUpIdeaService.create(user, request);
         List<String> lookingFor = idea.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
+        Like like = likeRepository.findByStartupIdeaId(user.getId(), idea.getId()).orElse(null);
 
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
@@ -60,7 +65,12 @@ public class EntrepreneurApiController {
                 lookingFor,
                 idea.getUpdatedAt(),
                 idea.getCreatedAt(),
-                idea.getUser()));
+                idea.getUser(),
+                idea.getLikeCount(),
+                idea.getCommentCount(),
+                idea.getLikedByCurrentUser(),
+                idea.getComment()
+        ));
     }
 
     @GetMapping("/dashboard")
@@ -78,7 +88,9 @@ public class EntrepreneurApiController {
                         i.getId(),
                         i.getTitle(),
                         i.getIndustry().getName(),
-                        i.getLikes() == null ? 0 : i.getLikes()))
+                        i.getLikes().size()
+                     
+                    ))
                 .toList();
 
         return ResponseEntity.ok(new DashboardResponse(ideaCount,user, totalLikes, totalComments, engagementRate, ideas));
@@ -100,7 +112,12 @@ public class EntrepreneurApiController {
                 lookingFor,
                 idea.getUpdatedAt(),
                 idea.getCreatedAt(),
-                idea.getUser()));
+                idea.getUser(),
+                idea.getLikeCount(),
+                idea.getCommentCount(),
+                idea.getLikedByCurrentUser(),
+                idea.getComment()
+                ));
     }
 
     @GetMapping("/my-ideas")
@@ -115,7 +132,11 @@ public class EntrepreneurApiController {
             i.getLookingFor().stream().map(n -> n.getName()).sorted().toList(),
             i.getUpdatedAt(),
             i.getCreatedAt(),
-            user
+            user,
+            i.getLikeCount(),
+            i.getCommentCount(),
+            i.getLikedByCurrentUser(),
+            i.getComment()
         )).toList();
         return ResponseEntity.ok(response);
     }

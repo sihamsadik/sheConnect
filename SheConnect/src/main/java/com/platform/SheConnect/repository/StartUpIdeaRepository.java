@@ -23,7 +23,7 @@ public interface StartUpIdeaRepository extends JpaRepository<StartUpIdea, Long> 
     long countByUserId(Long userId);
 
     // 2. Sum of likes of all startup ideas by user
-    @Query("SELECT COALESCE(SUM(s.likes),0) FROM StartUpIdea s WHERE s.user.id = :userId")
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.startupIdea.user.id = :userId")
     Integer totalLikesByUser(@Param("userId") Long userId);
 
     // 3. Count comments of all startup ideas by user

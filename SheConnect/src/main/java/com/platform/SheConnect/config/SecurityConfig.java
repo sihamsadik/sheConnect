@@ -33,6 +33,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers("/api/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")
             .requestMatchers("/api/advisor/**").hasAuthority("ROLE_ADVISOR")
             .requestMatchers("/api/investor/**").hasAuthority("ROLE_INVESTOR")
+            .requestMatchers("/api/interactions/**").authenticated()
             .anyRequest().authenticated()
         );
 
