@@ -5,14 +5,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.dto.LoginResponse;
+
 
 public class StartUpIdeaResponse {
     private Long id;
     private String title;
     private String industry;
     private List<String> lookingFor;
-    private User ideaAdmin;
-    private User user;
+    private LoginResponse ideaAdmin;
+    private LoginResponse user;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -22,10 +24,16 @@ public class StartUpIdeaResponse {
         this.title = title;
         this.industry = industry;
         this.lookingFor = lookingFor;
-        this.ideaAdmin = ideaAdmin;
+        this.ideaAdmin = mapToLoginResponse(ideaAdmin);
         this.updatedAt = updatedAt;
         this.createdAt = createdAt;
-        this.user =user;
+        this.user = mapToLoginResponse(user);
+    }
+    public LoginResponse mapToLoginResponse(User user) {
+        if (user == null) {
+            return null;
+        }
+        return new LoginResponse(user.getName(), user.getEmail(), user.getRole().getName(), null, null);
     }
     public LocalDateTime getCreatedAt(){
         return createdAt;
@@ -37,10 +45,10 @@ public class StartUpIdeaResponse {
     public Long getId() {
         return id;
     }
-    public User getUser(){
+    public LoginResponse getUser(){
         return user;
     }
-    public User getIdeaAdmin(){
+    public LoginResponse getIdeaAdmin(){
         return ideaAdmin;
     }
 

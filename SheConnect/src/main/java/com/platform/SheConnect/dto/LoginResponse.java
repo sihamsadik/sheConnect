@@ -16,7 +16,7 @@ public class LoginResponse {
         this.email = email;
         this.role = role;
         this.token = token;
-        this.refreshToken = refreshToken.getToken();
+        this.refreshToken = (refreshToken != null)? refreshToken.getToken():null;
     }
 
     public String getName() { return name; }

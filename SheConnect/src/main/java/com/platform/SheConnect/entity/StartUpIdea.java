@@ -29,11 +29,14 @@ public class StartUpIdea {
     private String solution;
     @Column(nullable = false)
     private String targetMarket;
-    @Column(nullable= false)
-    private Integer likes = 0;
+    // @Column(nullable= false)
+    // private Integer likes = 0;
 
     @OneToMany(mappedBy = "startupIdea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+    
+     @OneToMany(mappedBy = "startupIdea", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes = new ArrayList<>();
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "industry_id", nullable = false)
