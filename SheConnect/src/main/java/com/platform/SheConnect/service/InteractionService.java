@@ -1,6 +1,7 @@
 package com.platform.SheConnect.service;
 
 import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
+import org.springframework.stereotype.Service;
 
 import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.repository.CommentRepository;
@@ -8,6 +9,9 @@ import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
 import com.platform.SheConnect.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
+@Service
+@Transactional
 public class InteractionService {
     private LikeRepository likeRepository;
     private CommentRepository commentRepository;

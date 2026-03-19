@@ -1,13 +1,17 @@
 package com.platform.SheConnect.controller;
 
-import org.springframework.http.ResponseEntity;
+import java.net.Authenticator;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.platform.SheConnect.dto.LikeRequest;
+import com.platform.SheConnect.dto.LikeResponse;
+import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.service.InteractionService;
 
 @RestController
@@ -19,15 +23,14 @@ public class InteractionController {
         this.interactionService = interactionService;
     }
     @PostMapping("/like")
-    public ResponseEntity<?> likeStartupIdea(@RequestBody LikeRequest likeRequest) {
-        // Implement the like functionality using interactionService
-       if (interactionService.hasUserLikedStartupIdea(likeRequest.getStartupIdeaId(), likeRequest.getUserId())) {
-
-           interactionService.unlikeStartupIdea(likeRequest.getStartupIdeaId(), likeRequest.getUserId());
-           return ResponseEntity.ok().body("Startup idea unliked successfully");
+    public ResponseEntity<LikeResponse> likeStartupIdea(Authentication authentication,@RequestBody LikeRequest likeRequest) {
+       User user = (User) authentication.getPrincipal();
+       if (interactionService.hasUserLikedStartupIdea(likeRequest.getStartupIdeaId(), user.getId())) {
+           interactionService.unlikeStartupIdea(likeRequest.getStartupIdeaId(), user.getId());
+           return ResponseEntity.ok().body(new LikeResponse(interactionService.countLikesByStartupIdeaId(likeRequest.getStartupIdeaId()), false));
        } else {
-           interactionService.likeStartupIdea(likeRequest.getStartupIdeaId(), likeRequest.getUserId());
-           return ResponseEntity.ok().body("Startup idea liked successfully");
+           interactionService.likeStartupIdea(likeRequest.getStartupIdeaId(), user.getId());
+           return ResponseEntity.ok().body(new LikeResponse(interactionService.countLikesByStartupIdeaId(likeRequest.getStartupIdeaId()), true));
        }
     }
 }
