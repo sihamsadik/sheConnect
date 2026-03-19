@@ -19,13 +19,13 @@ public class StartUpIdeaResponse {
     private Long likeCount;
     private Long commentCount;
     private Boolean likedByCurrentUser;
-    private Comment comment;
+    private List<Comment> comment;
     private LoginResponse user;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
 
-    public StartUpIdeaResponse(Long id, User ideaAdmin, String title, String industry, List<String> lookingFor, LocalDateTime updatedAt, LocalDateTime createdAt, User user, Long likeCount, Long commentCount, Boolean likedByCurrentUser, Comment comment) {
+    public StartUpIdeaResponse(Long id, User ideaAdmin, String title, String industry, List<String> lookingFor, LocalDateTime updatedAt, LocalDateTime createdAt, User user, Long likeCount, Long commentCount, Boolean likedByCurrentUser, List<Comment> comment) {
         this.id = id;
         this.title = title;
         this.industry = industry;
@@ -60,7 +60,7 @@ public class StartUpIdeaResponse {
     public Boolean getLikedByCurrentUser() {
         return likedByCurrentUser;
     }
-    public Comment getComment() {
+    public List<Comment> getComment() {
         return comment;
     }
 

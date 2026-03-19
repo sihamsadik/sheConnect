@@ -18,9 +18,11 @@ import com.platform.SheConnect.dto.CreateStartUpIdeaRequest;
 import com.platform.SheConnect.dto.DashboardResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
+import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.repository.CommentRepository;
 import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.UserRepository;
 import com.platform.SheConnect.service.DashboardService;
@@ -33,12 +35,14 @@ public class EntrepreneurApiController {
     private final DashboardService dashboardService;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
-    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository) {
+    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.startUpIdeaService = startUpIdeaService;
         this.dashboardService = dashboardService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
     }
 
     @PostMapping("/createstartup-ideas")
@@ -55,7 +59,10 @@ public class EntrepreneurApiController {
 
         StartUpIdea idea = startUpIdeaService.create(user, request);
         List<String> lookingFor = idea.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
-        Like like = likeRepository.findByStartupIdeaId(user.getId(), idea.getId()).orElse(null);
+        Long likeCount = likeRepository.countByStartupIdeaId(idea.getId());
+        Long commentCount = commentRepository.countByStartupIdeaId(idea.getId());
+        Boolean likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(user.getId(), idea.getId()).isPresent();
+        List<Comment> comment = commentRepository.findByStartupIdeaId(idea.getId());
 
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
@@ -66,10 +73,10 @@ public class EntrepreneurApiController {
                 idea.getUpdatedAt(),
                 idea.getCreatedAt(),
                 idea.getUser(),
-                idea.getLikeCount(),
-                idea.getCommentCount(),
-                idea.getLikedByCurrentUser(),
-                idea.getComment()
+                likeCount,
+                commentCount,
+                likedByCurrentUser,
+                comment
         ));
     }
 
@@ -104,6 +111,10 @@ public class EntrepreneurApiController {
             return ResponseEntity.notFound().build();
         }
         List<String> lookingFor = idea.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
+        Long likeCount = likeRepository.countByStartupIdeaId(idea.getId());
+        Long commentCount = commentRepository.countByStartupIdeaId(idea.getId());
+        Boolean likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(user.getId(), idea.getId()).isPresent();
+        List<Comment> comment = commentRepository.findByStartupIdeaId(idea.getId());
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
                 user,
@@ -113,17 +124,18 @@ public class EntrepreneurApiController {
                 idea.getUpdatedAt(),
                 idea.getCreatedAt(),
                 idea.getUser(),
-                idea.getLikeCount(),
-                idea.getCommentCount(),
-                idea.getLikedByCurrentUser(),
-                idea.getComment()
-                ));
+                likeCount,
+                commentCount,
+                likedByCurrentUser,
+                comment
+        ));
     }
 
     @GetMapping("/my-ideas")
     public ResponseEntity<List<StartUpIdeaResponse>> myStartUpIdea(Authentication authentication) {
         User user = (User)authentication.getPrincipal();
         List<StartUpIdea> userIdeas = startUpIdeaService.MyIdeas(user);
+       
         List<StartUpIdeaResponse> response = userIdeas.stream().map(i -> new StartUpIdeaResponse(
             i.getId(),
             i.getUser(),
@@ -133,10 +145,10 @@ public class EntrepreneurApiController {
             i.getUpdatedAt(),
             i.getCreatedAt(),
             user,
-            i.getLikeCount(),
-            i.getCommentCount(),
-            i.getLikedByCurrentUser(),
-            i.getComment()
+            likeRepository.countByStartupIdeaId(i.getId()),
+            commentRepository.countByStartupIdeaId(i.getId()),
+            likeRepository.findByStartupIdeaIdAndUserId(user.getId(), i.getId()).isPresent(),
+            commentRepository.findByStartupIdeaId(i.getId())
         )).toList();
         return ResponseEntity.ok(response);
     }
