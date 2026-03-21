@@ -35,10 +35,10 @@ jobs:
         distribution: 'temurin'
     
     - name: Build with Maven
-  run: cd SheConnect && mvn clean install
-  env:
-    SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sheconnect
-    SPRING_DATASOURCE_USERNAME: postgres
-    SPRING_DATASOURCE_PASSWORD: postgres
-    SPRING_PROFILES_ACTIVE: postgres    # ← ADD THIS!
-    JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: cd SheConnect && mvn clean install
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sheconnect
+        SPRING_DATASOURCE_USERNAME: postgres
+        SPRING_DATASOURCE_PASSWORD: postgres
+        SPRING_PROFILES_ACTIVE: postgres
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
