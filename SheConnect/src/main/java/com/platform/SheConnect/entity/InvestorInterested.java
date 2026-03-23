@@ -1,20 +1,23 @@
 package com.platform.SheConnect.entity;
+
 import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
-@Table(name= "comments")
-@Getter
-@Setter
+@Table(name = "investor_interested")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 
-public class Comment {
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long id;
-   @Column(nullable = false,length = 1000)
-    private String content;
+public class InvestorInterested {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name ="user_id", nullable = false)
@@ -24,4 +27,6 @@ public class Comment {
     @JoinColumn(name = "startup_idea_id", nullable = false)
     private StartUpIdea startupIdea;
     
+
+    // Constructors, getters, and setters
 }
