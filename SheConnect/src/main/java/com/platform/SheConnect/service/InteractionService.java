@@ -3,6 +3,7 @@ package com.platform.SheConnect.service;
 import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
 import org.springframework.stereotype.Service;
 
+import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.repository.CommentRepository;
 import com.platform.SheConnect.repository.LikeRepository;
@@ -27,6 +28,13 @@ public class InteractionService {
 
     public Long countLikesByStartupIdeaId(Long startupIdeaId) {
         return likeRepository.countByStartupIdeaId(startupIdeaId);
+    }
+    public Comment addCommentToStartupIdea(Long startupIdeaId, Long userId, String content) {
+        Comment comment = new Comment();
+        comment.setContent(content);
+        comment.setStartupIdea(startUpIdeaRepository.findById(startupIdeaId).orElseThrow(() -> new RuntimeException("Startup idea not found")));
+        comment.setUser(userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+        return commentRepository.save(comment);
     }
     public boolean hasUserLikedStartupIdea(Long startupIdeaId, Long userId) {
         return likeRepository.findByStartupIdeaIdAndUserId(startupIdeaId, userId).isPresent();
