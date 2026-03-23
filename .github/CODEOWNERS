@@ -1,0 +1,8 @@
+# Default owners for everything
+* @sihamsadik
+
+# Backend code owners
+/SheConnect/src/ @sihamsadik
+
+# CI/CD owners
+/.github/ @sihamsadik

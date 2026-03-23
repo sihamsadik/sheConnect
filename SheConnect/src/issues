@@ -5,3 +5,17 @@ in dash board dto add recent activity and continue with it
 messaging 
 email as notification for enterprenuer 
 meeting feature
+for lerning
+Changed .github/workflows/ci.yml#L10: removed the postgres service + SPRING_PROFILES_ACTIVE=postgres and datasource env vars, switched build command to cd SheConnect && ./mvnw -B -ntp clean verify, and updated checkout/setup-java actions + enabled Maven cache.
+
+Why: your CI was forcing the app/tests to start with the Postgres profile, so Spring tried to create a Postgres DataSource during @SpringBootTest. In CI that regularly fails (missing/incorrect driver on classpath at that point, wrong URL/credentials, service not ready), and the whole build dies.
+Changed SheConnect/src/test/java/com/platform/SheConnect/SheConnectApplicationTests.java#L7: added @ActiveProfiles("test").
+
+Why: ensures the context-load test never accidentally uses postgres profile (from env/CI), so it won’t require Postgres just to run tests.
+Added SheConnect/src/test/resources/application-test.properties#L1: H2 in-memory datasource + ddl-auto=create-drop + a default JWT secret.
+
+Why: makes the test profile self-contained and deterministic in CI/local runs.
+Root cause
+
+The failing build log shows Spring Boot starting the test application context and attempting to configure a Postgres datasource, then crashing with Cannot load driver class: org.postgresql.Driver.
+That happened because CI was activating the postgres profile (and setting Postgres datasource env vars), so your @SpringBootTest tried to boot using Postgres during mvn (test phase).
