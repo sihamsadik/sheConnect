@@ -2,6 +2,8 @@ package com.platform.SheConnect.service;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.platform.SheConnect.repository.InvestorInterestRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
 import com.platform.SheConnect.entity.EntrepreneurNeed;
@@ -10,6 +12,7 @@ import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.repository.CommentRepository;
 import com.platform.SheConnect.repository.LikeRepository;
 
+@Service
 public class InvestorDashboardService {
     private final StartUpIdeaRepository startUpIdeaRepository;
     private final InvestorInterestRepository investorInterestRepository;

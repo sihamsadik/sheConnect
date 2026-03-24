@@ -20,12 +20,12 @@ public class InvestorInterested {
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name ="user_id", nullable = false)
-    private User user;
+    @JoinColumn(name ="investor_id", nullable = false)
+    private User investor;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "startup_idea_id", nullable = false)
-    private StartUpIdea startupIdea;
+    private StartUpIdea startUpIdea;
     
 
     // Constructors, getters, and setters

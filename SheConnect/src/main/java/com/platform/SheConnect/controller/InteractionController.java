@@ -1,7 +1,10 @@
 package com.platform.SheConnect.controller;
 
 import java.net.Authenticator;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.parameters.P;
@@ -22,30 +25,36 @@ import com.platform.SheConnect.service.InteractionService;
 @RestController
 @RequestMapping("/api/interactions")
 public class InteractionController {
+    private static final Logger log = LoggerFactory.getLogger(InteractionController.class);
     private final InteractionService interactionService;
 
     public InteractionController(InteractionService interactionService) {
         this.interactionService = interactionService;
     }
     @PostMapping("startup-ideas/{id}/comment")
-    public ResponseEntity<String> commentOnStartupIdea(Authentication authentication,@PathVariable Long id,@RequestBody CommentRequestDto commentRequest){
+    public ResponseEntity<?> commentOnStartupIdea(Authentication authentication,@PathVariable Long id,@RequestBody CommentRequestDto commentRequest){
         User user = (User) authentication.getPrincipal();
         String content = commentRequest.getContent();
 
         
-        if (content != null) {
+        if (content != null && !content.isBlank()) {
             try {
                 Comment comment = interactionService.addCommentToStartupIdea(id, user.getId(), content);
-                return ResponseEntity.ok("Comment added successfully");
+                return ResponseEntity.ok(
+                        Map.of(
+                                "commentId", comment.getId(),
+                                "content", comment.getContent(),
+                                "userId", comment.getUser().getName(),
+                                "startupIdeaId", comment.getStartupIdea().getId()));
             } catch (Exception e) {
-                // TODO: handle exception
-                return ResponseEntity.badRequest().body("Failed to add comment: " + e.getMessage());
+                log.error("Failed to add comment (startupIdeaId={}, userId={})", id, user.getId(), e);
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to add comment"));
             }
         }
         return ResponseEntity.badRequest().body("Failed to add comment");
     }
     @PostMapping("startup-ideas/{id}/like")
-    public ResponseEntity<LikeResponse> likeStartupIdea(Authentication authentication,@PathVariable Long id,@RequestBody LikeRequest likeRequest) {
+    public ResponseEntity<LikeResponse> likeStartupIdea(Authentication authentication,@PathVariable Long id) {
        User user = (User) authentication.getPrincipal();
       
        if (interactionService.hasUserLikedStartupIdea(id, user.getId())) {

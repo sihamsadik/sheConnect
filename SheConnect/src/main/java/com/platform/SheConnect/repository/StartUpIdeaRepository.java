@@ -18,7 +18,7 @@ public interface StartUpIdeaRepository extends JpaRepository<StartUpIdea, Long> 
     Optional<StartUpIdea> findByTitle(String title);    
     List<StartUpIdea> findAllByUser(User user);
     List<StartUpIdea> findAllByIndustry(Industry industry);
-    List<StartUpIdea> findAllByLookingFor_Name(String name);
+    
     List<StartUpIdea> findAll();
     void deleteById(Long id);
       // 1. Count startup ideas by user
@@ -27,6 +27,9 @@ public interface StartUpIdeaRepository extends JpaRepository<StartUpIdea, Long> 
     // 2. Sum of likes of all startup ideas by user
     @Query("SELECT COUNT(l) FROM Like l WHERE l.startupIdea.user.id = :userId")
     Integer totalLikesByUser(@Param("userId") Long userId);
+
+    @Query("SELECT i FROM StartUpIdea i JOIN i.lookingFor n WHERE n.name = :needName")
+    List<StartUpIdea> findAllByLookingFor_Name(@Param("needName") String needName);
 
     // 3. Count comments of all startup ideas by user
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.startupIdea.user.id = :userId")
