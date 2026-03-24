@@ -46,6 +46,6 @@ public class InvestorDashboardService {
 
 
     public List<StartUpIdea> getIdeasByEntrepreneurNeed(String entrepreneurNeed){
-        return startUpIdeaRepository.findAllByEntrepreneurNeed(entrepreneurNeed);
+        return startUpIdeaRepository.findAllByLookingFor_Name(entrepreneurNeed);
     }
 }

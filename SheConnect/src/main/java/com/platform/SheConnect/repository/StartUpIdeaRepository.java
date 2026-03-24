@@ -18,7 +18,7 @@ public interface StartUpIdeaRepository extends JpaRepository<StartUpIdea, Long> 
     Optional<StartUpIdea> findByTitle(String title);    
     List<StartUpIdea> findAllByUser(User user);
     List<StartUpIdea> findAllByIndustry(Industry industry);
-    List<StartUpIdea> findAllByEntrepreneurNeed(EntrepreneurNeed entrepreneurNeed);
+    List<StartUpIdea> findAllByLookingFor_Name(String name);
     List<StartUpIdea> findAll();
     void deleteById(Long id);
       // 1. Count startup ideas by user
