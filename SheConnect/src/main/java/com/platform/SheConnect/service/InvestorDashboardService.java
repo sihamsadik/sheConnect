@@ -27,6 +27,7 @@ public class InvestorDashboardService {
         return startUpIdeaRepository.findAll();
         
     }
+    
 
     public List<StartUpIdea> getIdeasByIndustry(Industry industry){
         return startUpIdeaRepository.findAllByIndustry(industry);
@@ -44,7 +45,7 @@ public class InvestorDashboardService {
     }
 
 
-    public List<StartUpIdea> getIdeasByEntrepreneurNeed(EntrepreneurNeed entrepreneurNeed){
+    public List<StartUpIdea> getIdeasByEntrepreneurNeed(String entrepreneurNeed){
         return startUpIdeaRepository.findAllByEntrepreneurNeed(entrepreneurNeed);
     }
 }
