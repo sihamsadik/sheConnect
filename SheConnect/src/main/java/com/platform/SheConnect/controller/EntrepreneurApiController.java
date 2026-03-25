@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.platform.SheConnect.dto.CreateStartUpIdeaRequest;
 import com.platform.SheConnect.dto.DashboardResponse;
+import com.platform.SheConnect.dto.LoginResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
 import com.platform.SheConnect.entity.Comment;
@@ -36,6 +37,7 @@ public class EntrepreneurApiController {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    // private  final StartUpIdeaResponse startUpIdeaResponse;
 
     public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.startUpIdeaService = startUpIdeaService;
@@ -43,6 +45,7 @@ public class EntrepreneurApiController {
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+    
     }
 
     @PostMapping("/createstartup-ideas")
@@ -63,6 +66,7 @@ public class EntrepreneurApiController {
         Long commentCount = commentRepository.countByStartupIdeaId(idea.getId());
         Boolean likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(user.getId(), idea.getId()).isPresent();
         List<Comment> comment = commentRepository.findByStartupIdeaId(idea.getId());
+        // LoginResponse loginUser = startUpIdeaResponse.mapToLoginResponse(user);
 
         return ResponseEntity.ok(new StartUpIdeaResponse(
                 idea.getId(),
