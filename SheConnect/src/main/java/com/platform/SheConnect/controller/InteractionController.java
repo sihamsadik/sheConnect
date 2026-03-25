@@ -25,6 +25,7 @@ import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.service.InteractionService;
 
 import jakarta.annotation.Generated;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/interactions")
@@ -36,7 +37,7 @@ public class InteractionController {
         this.interactionService = interactionService;
     }
     @PostMapping("startup-ideas/{id}/comment")
-    public ResponseEntity<?> commentOnStartupIdea(Authentication authentication,@PathVariable Long id,@RequestBody CommentRequestDto commentRequest){
+    public ResponseEntity<?> commentOnStartupIdea(Authentication authentication,@PathVariable Long id,@Valid @RequestBody CommentRequestDto commentRequest){
         User user = (User) authentication.getPrincipal();
         String content = commentRequest.getContent();
 

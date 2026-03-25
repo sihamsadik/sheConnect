@@ -13,6 +13,8 @@ import com.platform.SheConnect.security.JwtService;
 import com.platform.SheConnect.dto.RefreshTokenRequest;
 import com.platform.SheConnect.service.AuthService;
 
+import jakarta.validation.Valid;
+
 import com.platform.SheConnect.dto.LoginRequest;
 import com.platform.SheConnect.dto.LoginResponse;
 import com.platform.SheConnect.dto.RefreshResponse;
@@ -41,23 +43,23 @@ public class AuthController {
         this.jwtService = jwtService;
     }
     @PostMapping("/register")
-    public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
         LoginResponse response = authService.RegisterService(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.LoginService(request);
         return ResponseEntity.ok(response);
     }
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody RefreshTokenRequest refreshToken) {
+    public ResponseEntity<String> logout(@Valid @RequestBody RefreshTokenRequest refreshToken) {
         refreshTokenService.deleteRefreshToken(refreshToken.getRefreshToken());
         return ResponseEntity.ok("Logged out successfully");
     }
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
 
         User user = refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken()).getUser();
         System.out.println("user email: " + user.getEmail());

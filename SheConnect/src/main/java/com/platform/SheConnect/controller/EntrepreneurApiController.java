@@ -29,6 +29,8 @@ import com.platform.SheConnect.repository.UserRepository;
 import com.platform.SheConnect.service.DashboardService;
 import com.platform.SheConnect.service.StartUpIdeaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/entrepreneur")
 public class EntrepreneurApiController {
@@ -50,7 +52,7 @@ public class EntrepreneurApiController {
 
     @PostMapping("/createstartup-ideas")
     public ResponseEntity<StartUpIdeaResponse> createStartUpIdea(Authentication authentication,
-            @RequestBody CreateStartUpIdeaRequest request) {
+            @Valid @RequestBody CreateStartUpIdeaRequest request) {
         User user = (User) authentication.getPrincipal();
         String userEmail = user.getEmail();
         

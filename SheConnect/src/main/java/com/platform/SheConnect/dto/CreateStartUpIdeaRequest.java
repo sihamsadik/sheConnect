@@ -3,6 +3,7 @@ package com.platform.SheConnect.dto;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CreateStartUpIdeaRequest {
@@ -16,6 +17,7 @@ public class CreateStartUpIdeaRequest {
     @NotBlank(message = "Industry is required")
     private String industryName;
     @NotBlank(message = "Looking for is required")
+    @Pattern(regexp = "INVESTOR,ADIVISOR,BOTH", message = "we only offer investor and adivisor")
     private List<String> lookingFor;
     @NotBlank(message = "Description can not be blank")
     private String description;
