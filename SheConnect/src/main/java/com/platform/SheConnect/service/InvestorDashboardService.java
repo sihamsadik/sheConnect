@@ -32,9 +32,9 @@ public class InvestorDashboardService {
     }
     
 
-    public List<StartUpIdea> getIdeasByIndustry(Industry industry){
-        return startUpIdeaRepository.findAllByIndustry(industry);
-    }
+    // public List<StartUpIdea> getIdeasByIndustry(Industry industry){
+    //     return startUpIdeaRepository.findAllByIndustry(industry);
+    // }
     public long getInvestorInterestCount(Long userId) {
         return investorInterestRepository.countByInvestorId(userId);
     }

@@ -2,13 +2,22 @@ package com.platform.SheConnect.dto;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class CreateStartUpIdeaRequest {
+    @NotBlank(message = "Title is required")
     private String title;
+
     private String problem;
     private String solution;
+
     private String targetMarket;
+    @NotBlank(message = "Industry is required")
     private String industryName;
+    @NotBlank(message = "Looking for is required")
     private List<String> lookingFor;
+    @NotBlank(message = "Description can not be blank")
     private String description;
     // private String userEmail;
 

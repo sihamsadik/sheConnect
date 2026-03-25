@@ -1,10 +1,20 @@
 package com.platform.SheConnect.dto;
 
-public class RegisterRequest {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
+public class RegisterRequest {
+    @NotBlank(message = "name can not be blank")
     private String name;
+    @NotBlank(message = "email can not be blank")
+    @Email(message= "email must be valid")
     private String email;
+    @NotBlank(message = "password can not be blank")
     private String password;
+    @NotBlank(message = "Role is required")
+    @Pattern(regexp = "ENTREPRENEUR|INVESTOR|ADVISOR", 
+             message = "Role must be ENTREPRENEUR, INVESTOR, or ADVISOR")
     private String role;
 
     public RegisterRequest() {}

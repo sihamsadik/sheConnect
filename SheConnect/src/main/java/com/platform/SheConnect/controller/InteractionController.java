@@ -1,6 +1,7 @@
 package com.platform.SheConnect.controller;
 
 import java.net.Authenticator;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.parameters.P;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +23,8 @@ import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.service.InteractionService;
+
+import jakarta.annotation.Generated;
 
 @RestController
 @RequestMapping("/api/interactions")
@@ -53,7 +57,9 @@ public class InteractionController {
         }
         return ResponseEntity.badRequest().body("Failed to add comment");
     }
-    @PostMapping("startup-ideas/{id}/like")
+    
+    
+    @GetMapping("startup-ideas/{id}/like")
     public ResponseEntity<LikeResponse> likeStartupIdea(Authentication authentication,@PathVariable Long id) {
        User user = (User) authentication.getPrincipal();
       
@@ -65,4 +71,10 @@ public class InteractionController {
            return ResponseEntity.ok().body(new LikeResponse(interactionService.countLikesByStartupIdeaId(id), true));
        }
     }
+    @GetMapping("/{industry}")
+    public ResponseEntity<List<StartUpIdea>> getStartupIdeasByIndustry(@PathVariable String industry) {
+        List<StartUpIdea> ideas = interactionService.getStartupIdeasByIndustry(industry);
+        return ResponseEntity.ok(ideas);
+    }
+
 }
