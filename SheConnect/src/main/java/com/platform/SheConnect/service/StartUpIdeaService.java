@@ -12,6 +12,7 @@ import com.platform.SheConnect.entity.EntrepreneurNeed;
 import com.platform.SheConnect.entity.Industry;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.EntrepreneurNeedRepository;
 import com.platform.SheConnect.repository.IndustryRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
@@ -43,7 +44,9 @@ public class StartUpIdeaService {
         }
 
         Industry industry = industryRepository.findByName(request.getIndustryName().trim())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown industry: " + request.getIndustryName()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+            "industry not found with id: " + request.getIndustryName()
+        ));
 
         Set<EntrepreneurNeed> lookingFor = new HashSet<>();
         if (request.getLookingFor() != null) {
@@ -52,7 +55,9 @@ public class StartUpIdeaService {
                     continue;
                 }
                 EntrepreneurNeed need = entrepreneurNeedRepository.findByName(needName.trim())
-                        .orElseThrow(() -> new IllegalArgumentException("Unknown entrepreneur need: " + needName));
+                        .orElseThrow(() -> new ResourceNotFoundException(
+            "enterprenuer need not found with id: " + needName
+        )); 
                 lookingFor.add(need);
             }
         }
@@ -72,7 +77,9 @@ public class StartUpIdeaService {
     public StartUpIdea getStartUpIdeasById(long id){
 
       final StartUpIdea ideaId = startUpIdeaRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Idea not found"));
+        .orElseThrow(() -> new ResourceNotFoundException(
+            " idea  not found with id: "+ id
+        )); 
        return ideaId;
         
        

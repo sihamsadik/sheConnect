@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 // import org.apache.catalina.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.platform.SheConnect.security.RefreshTokenService;
 import com.platform.SheConnect.security.JwtService;
@@ -45,7 +46,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
         LoginResponse response = authService.RegisterService(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
@@ -61,19 +62,13 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
 
-        User user = refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken()).getUser();
-        System.out.println("user email: " + user.getEmail());
-         RefreshToken response = refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
-        if (response == null) {
-            System.out.println("Invalid refresh token");
-            return ResponseEntity.status(401).body(null);
-        }
+        RefreshToken refreshToken = refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
+        User user = refreshToken.getUser();
         refreshTokenService.deleteRefreshToken(refreshTokenRequest.getRefreshToken());
         String newAccessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().getName());
         String newRefreshToken = refreshTokenService.createRefreshToken(user).getToken();
 
         RefreshResponse refreshResponse = new RefreshResponse(newAccessToken, newRefreshToken);
-        System.out.println("New Access Token: " + newAccessToken);
         return ResponseEntity.ok(refreshResponse);
     }
 

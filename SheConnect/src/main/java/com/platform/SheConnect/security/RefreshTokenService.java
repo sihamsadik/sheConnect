@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.platform.SheConnect.entity.RefreshToken;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.UnauthorizedException;
 import com.platform.SheConnect.repository.RefreshTokenRepository;
 import com.platform.SheConnect.security.JwtService;
 
@@ -55,15 +56,14 @@ public class RefreshTokenService {
     public RefreshToken validateRefreshToken(String token) {
         RefreshToken refreshToken = repository.findByToken(token);
        if (refreshToken == null) {
-           throw new RuntimeException("Invalid refresh token");
+           throw new UnauthorizedException("Invalid refresh token");
        }
 
         if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired");
+            throw new UnauthorizedException("Refresh token expired");
         }
 
     return refreshToken;
 }
     }
-
 

@@ -11,6 +11,8 @@ import com.platform.SheConnect.entity.RefreshToken;
 import com.platform.SheConnect.entity.Role;
 import com.platform.SheConnect.security.RefreshTokenService;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
+import com.platform.SheConnect.exception.UnauthorizedException;
 import com.platform.SheConnect.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,7 @@ public class AuthService {
              refreshTokenService.createRefreshToken(user);
 
 if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-    throw new RuntimeException("Invalid credentials");
+    throw new UnauthorizedException("Invalid credentials");
 }
 
         return new LoginResponse(user.getName(), user.getEmail(), user.getRole().getName(), jwtService.generateAccessToken(user.getEmail(), user.getRole().getName()), refreshToken);
@@ -57,25 +59,27 @@ if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 
         // 1️⃣ Basic validation
         if (request.getName() == null || request.getName().isEmpty()) {
-            throw new RuntimeException("Name required");
+            throw new IllegalArgumentException("Name required");
         }
 
         if (request.getEmail() == null || request.getEmail().isEmpty()) {
-            throw new RuntimeException("Email required");
+            throw new IllegalArgumentException("Email required");
         }
 
         if (!isStrongPassword(request.getPassword())) {
-            throw new RuntimeException("Weak password");
+            throw new IllegalArgumentException("Weak password");
         }
 
         // 2️⃣ Check email already exists
         if (userService.findUserByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already used");
+            throw new IllegalArgumentException("Email already used");
         }
 
         // 3️⃣ Get role from DB
         Role role = roleRepository.findByName(request.getRole())
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+            "Role name not found : "
+        ));
 
         // 4️⃣ Encrypt password
         // request.setPassword(passwordEncoder.encode(request.getPassword()));

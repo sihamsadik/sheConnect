@@ -7,6 +7,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.platform.SheConnect.security.JwtAuthenticationFilter;
+import com.platform.SheConnect.security.RestAccessDeniedHandler;
+import com.platform.SheConnect.security.RestAuthenticationEntryPoint;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,9 +19,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfig {
     private  final JwtAuthenticationFilter jwtFilter;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtFilter,
+            RestAuthenticationEntryPoint authenticationEntryPoint,
+            RestAccessDeniedHandler accessDeniedHandler
+    ) {
         this.jwtFilter = jwtFilter;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
     @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,6 +38,10 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .csrf(csrf -> csrf.disable())
         .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 console
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint(authenticationEntryPoint)
+            .accessDeniedHandler(accessDeniedHandler)
+        )
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/**", "/Home", "/h2-console/**").permitAll()
             .requestMatchers("/api/entrepreneur/**").hasAuthority("ROLE_ENTREPRENEUR")

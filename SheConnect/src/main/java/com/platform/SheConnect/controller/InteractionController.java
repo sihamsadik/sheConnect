@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.parameters.P;
@@ -22,6 +23,7 @@ import com.platform.SheConnect.dto.LikeResponse;
 import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.service.InteractionService;
 
 import jakarta.annotation.Generated;
@@ -41,22 +43,17 @@ public class InteractionController {
         User user = (User) authentication.getPrincipal();
         String content = commentRequest.getContent();
 
-        
-        if (content != null && !content.isBlank()) {
-            try {
-                Comment comment = interactionService.addCommentToStartupIdea(id, user.getId(), content);
-                return ResponseEntity.ok(
-                        Map.of(
-                                "commentId", comment.getId(),
-                                "content", comment.getContent(),
-                                "userId", comment.getUser().getName(),
-                                "startupIdeaId", comment.getStartupIdea().getId()));
-            } catch (Exception e) {
-                log.error("Failed to add comment (startupIdeaId={}, userId={})", id, user.getId(), e);
-                return ResponseEntity.badRequest().body(Map.of("error", "Failed to add comment"));
-            }
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("Comment content is required");
         }
-        return ResponseEntity.badRequest().body("Failed to add comment");
+
+        Comment comment = interactionService.addCommentToStartupIdea(id, user.getId(), content);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                Map.of(
+                        "commentId", comment.getId(),
+                        "content", comment.getContent(),
+                        "userId", comment.getUser().getId(),
+                        "startupIdeaId", comment.getStartupIdea().getId()));
     }
     
     

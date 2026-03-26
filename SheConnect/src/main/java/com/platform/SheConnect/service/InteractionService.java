@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.entity.StartUpIdea;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.CommentRepository;
 import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
@@ -38,8 +39,12 @@ public class InteractionService {
     public Comment addCommentToStartupIdea(Long startupIdeaId, Long userId, String content) {
         Comment comment = new Comment();
         comment.setContent(content);
-        comment.setStartupIdea(startUpIdeaRepository.findById(startupIdeaId).orElseThrow(() -> new RuntimeException("Startup idea not found")));
-        comment.setUser(userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+        comment.setStartupIdea(startUpIdeaRepository.findById(startupIdeaId).orElseThrow(() -> new ResourceNotFoundException(
+            "startup idea  not found with id: " + startupIdeaId
+        ))); 
+        comment.setUser(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(
+            "user  not found with id: "+ userId 
+        ))); 
         return commentRepository.save(comment);
     }
     public boolean hasUserLikedStartupIdea(Long startupIdeaId, Long userId) {
@@ -51,8 +56,12 @@ public class InteractionService {
     public void likeStartupIdea(Long startupIdeaId, Long userId) {
         if (!hasUserLikedStartupIdea(startupIdeaId, userId)) {
             Like like = new Like();
-            like.setStartupIdea(startUpIdeaRepository.findById(startupIdeaId).orElseThrow(() -> new RuntimeException("Startup idea not found")));
-            like.setUser(userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+            like.setStartupIdea(startUpIdeaRepository.findById(startupIdeaId).orElseThrow(() -> new ResourceNotFoundException(
+            "startup idea  not found with id: " + startupIdeaId
+        ))); 
+            like.setUser(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(
+            "user  not found with id: "+ userId 
+        ))); 
             likeRepository.save(like);
         }
     }
