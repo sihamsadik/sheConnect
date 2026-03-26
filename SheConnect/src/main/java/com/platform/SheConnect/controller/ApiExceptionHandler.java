@@ -18,6 +18,7 @@ import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.exception.UnauthorizedException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ValidationException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -61,6 +62,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> unreadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, "Malformed JSON request", request, null);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiErrorResponse> validationError(ValidationException ex, HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null);
     }
 
     @ExceptionHandler(Exception.class)

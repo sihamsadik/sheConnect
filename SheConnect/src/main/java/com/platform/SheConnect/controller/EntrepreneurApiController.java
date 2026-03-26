@@ -32,7 +32,9 @@ import com.platform.SheConnect.service.DashboardService;
 import com.platform.SheConnect.service.StartUpIdeaService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/entrepreneur")
 public class EntrepreneurApiController {
@@ -55,13 +57,18 @@ public class EntrepreneurApiController {
     @PostMapping("/createstartup-ideas")
     public ResponseEntity<StartUpIdeaResponse> createStartUpIdea(Authentication authentication,
             @Valid @RequestBody CreateStartUpIdeaRequest request) {
+        log.info("Received request to create startup idea"); 
         User user = (User) authentication.getPrincipal();
         String userEmail = user.getEmail();
+        log.info("Received user {} to create startup idea",userEmail); 
         
         user = userRepository.findByEmail(userEmail).orElse(null);
+
         
         if (user == null) {
-            throw new IllegalArgumentException("User not found");
+            log.error("no user is found");
+            
+            throw new ResourceNotFoundException("User not found");
         }
 
         StartUpIdea idea = startUpIdeaService.create(user, request);
@@ -71,6 +78,7 @@ public class EntrepreneurApiController {
         Boolean likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(user.getId(), idea.getId()).isPresent();
         List<Comment> comment = commentRepository.findByStartupIdeaId(idea.getId());
         // LoginResponse loginUser = startUpIdeaResponse.mapToLoginResponse(user);
+        log.info("eentering in the response entity");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new StartUpIdeaResponse(
                 idea.getId(),
