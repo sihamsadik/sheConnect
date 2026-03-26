@@ -19,3 +19,4 @@ Root cause
 
 The failing build log shows Spring Boot starting the test application context and attempting to configure a Postgres datasource, then crashing with Cannot load driver class: org.postgresql.Driver.
 That happened because CI was activating the postgres profile (and setting Postgres datasource env vars), so your @SpringBootTest tried to boot using Postgres during mvn (test phase).
+add AI for start up idea create that to know if the start up is already used or not

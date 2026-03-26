@@ -15,6 +15,8 @@ import com.platform.SheConnect.repository.StartUpIdeaRepository;
 import com.platform.SheConnect.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Service
 @Transactional
 public class InteractionService {
@@ -34,6 +36,7 @@ public class InteractionService {
         return likeRepository.countByStartupIdeaId(startupIdeaId);
     }
     public List<StartUpIdea> getStartupIdeasByIndustry(String industryName) {
+        log.info("user want to find startup idea by {}", industryName);
         return startUpIdeaRepository.findAllByIndustry_Name(industryName);
     }
     public Comment addCommentToStartupIdea(Long startupIdeaId, Long userId, String content) {
@@ -45,12 +48,14 @@ public class InteractionService {
         comment.setUser(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(
             "user  not found with id: "+ userId 
         ))); 
+        log.info("user{} comment in startup idea {}",userId,startupIdeaId);
         return commentRepository.save(comment);
     }
     public boolean hasUserLikedStartupIdea(Long startupIdeaId, Long userId) {
         return likeRepository.findByStartupIdeaIdAndUserId(startupIdeaId, userId).isPresent();
     }
     public void unlikeStartupIdea(Long startupIdeaId, Long userId) {
+        log.warn("user{} unliked startupidea {}",userId,startupIdeaId);
         likeRepository.deleteByStartupIdeaIdAndUserId(startupIdeaId, userId);
     }
     public void likeStartupIdea(Long startupIdeaId, Long userId) {
@@ -62,6 +67,7 @@ public class InteractionService {
             like.setUser(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(
             "user  not found with id: "+ userId 
         ))); 
+        log.info("user{} liked startup idea {}",userId,startupIdeaId);
             likeRepository.save(like);
         }
     }

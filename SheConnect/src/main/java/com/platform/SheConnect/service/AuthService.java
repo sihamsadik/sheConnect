@@ -10,13 +10,14 @@ import com.platform.SheConnect.security.JwtService;
 import com.platform.SheConnect.entity.RefreshToken;
 import com.platform.SheConnect.entity.Role;
 import com.platform.SheConnect.security.RefreshTokenService;
+import lombok.extern.slf4j.Slf4j;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.exception.UnauthorizedException;
 import com.platform.SheConnect.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
-
+@Slf4j
 @Service
 
 public class AuthService {
@@ -38,10 +39,13 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
          RefreshToken refreshToken =
              refreshTokenService.createRefreshToken(user);
+        
 
-if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-    throw new UnauthorizedException("Invalid credentials");
-}
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.error("user with id {} password is incorrect",user.getId() );
+            throw new UnauthorizedException("Invalid credentials");
+        }
+        log.info("user logged in");
 
         return new LoginResponse(user.getName(), user.getEmail(), user.getRole().getName(), jwtService.generateAccessToken(user.getEmail(), user.getRole().getName()), refreshToken);
     }
@@ -59,19 +63,23 @@ if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 
         // 1️⃣ Basic validation
         if (request.getName() == null || request.getName().isEmpty()) {
+            log.error("user did not enter name");
             throw new IllegalArgumentException("Name required");
         }
 
         if (request.getEmail() == null || request.getEmail().isEmpty()) {
+             log.error("user did not enter email");
             throw new IllegalArgumentException("Email required");
         }
 
         if (!isStrongPassword(request.getPassword())) {
+             log.error("user did not enter password ");
             throw new IllegalArgumentException("Weak password");
         }
 
         // 2️⃣ Check email already exists
         if (userService.findUserByEmail(request.getEmail()).isPresent()) {
+             log.error("user enter the email that is registered before");
             throw new IllegalArgumentException("Email already used");
         }
 

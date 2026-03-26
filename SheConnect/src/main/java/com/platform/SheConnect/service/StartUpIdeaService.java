@@ -17,6 +17,9 @@ import com.platform.SheConnect.repository.EntrepreneurNeedRepository;
 import com.platform.SheConnect.repository.IndustryRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class StartUpIdeaService {
     private final StartUpIdeaRepository startUpIdeaRepository;
@@ -32,14 +35,17 @@ public class StartUpIdeaService {
 
     public StartUpIdea create(User user, CreateStartUpIdeaRequest request) {
         if (user == null) {
+            log.error("can not get the user");
             throw new IllegalArgumentException("User required");
         }
         if (request == null) {
+            log.error("can not get the request");
             throw new IllegalArgumentException("Request required");
         }
 
         if (isBlank(request.getTitle()) || isBlank(request.getProblem()) || isBlank(request.getSolution())
                 || isBlank(request.getTargetMarket()) || isBlank(request.getIndustryName())) {
+            log.error("no fuul information is get for the start up idea");
             throw new IllegalArgumentException("title, problem, solution, targetMarket, industryName are required");
         }
 
@@ -71,6 +77,7 @@ public class StartUpIdeaService {
         idea.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
         idea.setLookingFor(lookingFor);
         idea.setUser(user);
+        log.info("user {} create startup idea",user.getId());
 
         return startUpIdeaRepository.save(idea);
     }
