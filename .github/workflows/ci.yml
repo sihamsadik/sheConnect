@@ -25,15 +25,8 @@ jobs:
       env:
         # Avoid depending on external services in CI; tests use the default in-memory H2 datasource
         JWT_SECRET: mysupersecretkey
-    - name: Upload Test Results
-      if: always() # Ensure this runs even if the build fails
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: SheConnect/target/surefire-reports
-    - name: Upload Code Coverage Report
-      if: always() # Ensure this runs even if the build fails
-      uses: actions/upload-artifact@v3
-      with:
-        name: code-coverage-report
-        path: SheConnect/target/site/jacoco
+    # add mvn test to run for test files
+    - name: Run tests with Maven
+      run: cd SheConnect && ./mvnw -B -ntp test
+      env:
+        JWT_SECRET: mysupersecretkey
