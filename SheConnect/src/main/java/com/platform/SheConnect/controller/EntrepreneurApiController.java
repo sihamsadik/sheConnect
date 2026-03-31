@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.session.RequestedUrlRedirectInvalidSessionStrategy;
@@ -16,18 +17,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.platform.SheConnect.dto.CreateStartUpIdeaRequest;
 import com.platform.SheConnect.dto.DashboardResponse;
+import com.platform.SheConnect.dto.LoginResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
 import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.CommentRepository;
 import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.UserRepository;
 import com.platform.SheConnect.service.DashboardService;
 import com.platform.SheConnect.service.StartUpIdeaService;
 
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/entrepreneur")
 public class EntrepreneurApiController {
@@ -36,6 +43,7 @@ public class EntrepreneurApiController {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    // private  final StartUpIdeaResponse startUpIdeaResponse;
 
     public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.startUpIdeaService = startUpIdeaService;
@@ -43,18 +51,24 @@ public class EntrepreneurApiController {
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+    
     }
 
     @PostMapping("/createstartup-ideas")
     public ResponseEntity<StartUpIdeaResponse> createStartUpIdea(Authentication authentication,
-            @RequestBody CreateStartUpIdeaRequest request) {
+            @Valid @RequestBody CreateStartUpIdeaRequest request) {
+        log.info("Received request to create startup idea"); 
         User user = (User) authentication.getPrincipal();
         String userEmail = user.getEmail();
+        log.info("Received user {} to create startup idea",userEmail); 
         
         user = userRepository.findByEmail(userEmail).orElse(null);
+
         
         if (user == null) {
-            return ResponseEntity.badRequest().build();
+            log.error("no user is found");
+            
+            throw new ResourceNotFoundException("User not found");
         }
 
         StartUpIdea idea = startUpIdeaService.create(user, request);
@@ -63,8 +77,10 @@ public class EntrepreneurApiController {
         Long commentCount = commentRepository.countByStartupIdeaId(idea.getId());
         Boolean likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(user.getId(), idea.getId()).isPresent();
         List<Comment> comment = commentRepository.findByStartupIdeaId(idea.getId());
+        // LoginResponse loginUser = startUpIdeaResponse.mapToLoginResponse(user);
+        log.info("eentering in the response entity");
 
-        return ResponseEntity.ok(new StartUpIdeaResponse(
+        return ResponseEntity.status(HttpStatus.CREATED).body(new StartUpIdeaResponse(
                 idea.getId(),
                 user,
                 idea.getTitle(),
@@ -108,7 +124,7 @@ public class EntrepreneurApiController {
         User user = (User) authentication.getPrincipal();
         StartUpIdea idea = (StartUpIdea) startUpIdeaService.getStartUpIdeasById(id);
         if (idea == null) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Startup idea not found with id: " + id);
         }
         List<String> lookingFor = idea.getLookingFor().stream().map(n -> n.getName()).sorted().toList();
         Long likeCount = likeRepository.countByStartupIdeaId(idea.getId());
@@ -154,4 +170,3 @@ public class EntrepreneurApiController {
     }
     
 }
-

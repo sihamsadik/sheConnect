@@ -1,6 +1,9 @@
 package com.platform.SheConnect.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LikeRequest {
+    @NotBlank(message = "")
     private Long startupIdeaId;
     
 

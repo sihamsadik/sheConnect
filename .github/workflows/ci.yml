@@ -25,3 +25,8 @@ jobs:
       env:
         # Avoid depending on external services in CI; tests use the default in-memory H2 datasource
         JWT_SECRET: mysupersecretkey
+    # add mvn test to run for test files
+    - name: Run tests with Maven
+      run: cd SheConnect && ./mvnw -B -ntp test
+      env:
+        JWT_SECRET: mysupersecretkey

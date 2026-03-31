@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name= "startup_ideas")
 @Getter
@@ -31,11 +33,12 @@ public class StartUpIdea {
     private String targetMarket;
     // @Column(nullable= false)
     // private Integer likes = 0;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "startupIdea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
-    
-     @OneToMany(mappedBy = "startupIdea", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "startupIdea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes = new ArrayList<>();
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -50,7 +53,8 @@ public class StartUpIdea {
     )
     private Set<EntrepreneurNeed> lookingFor = new HashSet<>();
     
-
+    
+    @JsonIgnore
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

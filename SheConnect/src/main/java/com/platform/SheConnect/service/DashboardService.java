@@ -33,6 +33,7 @@ public class DashboardService {
    public List<StartUpIdea> getAllStartupIdeas(User user) {
         return startUpIdeaRepository.findAllByUser(user);
     }
+    
    
     public double getEngagementRate(Long userId) {
         long ideaCount = getIdeaCount(userId);

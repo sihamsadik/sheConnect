@@ -12,10 +12,14 @@ import com.platform.SheConnect.entity.EntrepreneurNeed;
 import com.platform.SheConnect.entity.Industry;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
+import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.EntrepreneurNeedRepository;
 import com.platform.SheConnect.repository.IndustryRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class StartUpIdeaService {
     private final StartUpIdeaRepository startUpIdeaRepository;
@@ -31,19 +35,24 @@ public class StartUpIdeaService {
 
     public StartUpIdea create(User user, CreateStartUpIdeaRequest request) {
         if (user == null) {
+            log.error("can not get the user");
             throw new IllegalArgumentException("User required");
         }
         if (request == null) {
+            log.error("can not get the request");
             throw new IllegalArgumentException("Request required");
         }
 
         if (isBlank(request.getTitle()) || isBlank(request.getProblem()) || isBlank(request.getSolution())
                 || isBlank(request.getTargetMarket()) || isBlank(request.getIndustryName())) {
+            log.error("no fuul information is get for the start up idea");
             throw new IllegalArgumentException("title, problem, solution, targetMarket, industryName are required");
         }
 
         Industry industry = industryRepository.findByName(request.getIndustryName().trim())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown industry: " + request.getIndustryName()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+            "industry not found with id: " + request.getIndustryName()
+        ));
 
         Set<EntrepreneurNeed> lookingFor = new HashSet<>();
         if (request.getLookingFor() != null) {
@@ -52,7 +61,9 @@ public class StartUpIdeaService {
                     continue;
                 }
                 EntrepreneurNeed need = entrepreneurNeedRepository.findByName(needName.trim())
-                        .orElseThrow(() -> new IllegalArgumentException("Unknown entrepreneur need: " + needName));
+                        .orElseThrow(() -> new ResourceNotFoundException(
+            "enterprenuer need not found with id: " + needName
+        )); 
                 lookingFor.add(need);
             }
         }
@@ -66,13 +77,16 @@ public class StartUpIdeaService {
         idea.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
         idea.setLookingFor(lookingFor);
         idea.setUser(user);
+        log.info("user {} create startup idea",user.getId());
 
         return startUpIdeaRepository.save(idea);
     }
     public StartUpIdea getStartUpIdeasById(long id){
 
       final StartUpIdea ideaId = startUpIdeaRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Idea not found"));
+        .orElseThrow(() -> new ResourceNotFoundException(
+            " idea  not found with id: "+ id
+        )); 
        return ideaId;
         
        
