@@ -84,4 +84,9 @@ private List<@Pattern(regexp = "^(INVESTOR|ADVISOR|BOTH)$",
     public void setLookingFor(List<String> lookingFor) {
         this.lookingFor = lookingFor;
     }
+
+    public void setUserId(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setUserId'");
+    }
 }
