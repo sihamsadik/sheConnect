@@ -5,6 +5,7 @@ import Signup from './Signup';
 import Login from './Login';
 import EntrepreneurDashboard from './EntrepreneurDashboard';
 import CreateIdea from './CreateIdea';
+import FounderProfile from './FounderProfile';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<EntrepreneurDashboard />} />
         <Route path="/create-idea" element={<CreateIdea />} />
+        <Route path="/profile" element={<FounderProfile />} />
       </Routes>
     </Router>
   );
