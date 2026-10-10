@@ -6,6 +6,7 @@ import Login from './Login';
 import EntrepreneurDashboard from './EntrepreneurDashboard';
 import CreateIdea from './CreateIdea';
 import FounderProfile from './FounderProfile';
+import InvestorDashboard from './InvestorDashboard';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/dashboard" element={<EntrepreneurDashboard />} />
         <Route path="/create-idea" element={<CreateIdea />} />
         <Route path="/profile" element={<FounderProfile />} />
+        <Route path="/investor" element={<InvestorDashboard />} />
       </Routes>
     </Router>
   );
