@@ -9,6 +9,7 @@ import FounderProfile from './FounderProfile';
 import InvestorDashboard from './InvestorDashboard';
 import InvestorProfile from './InvestorProfile';
 import AdvisorDashboard from './AdvisorDashboard';
+import Marketplace from './Marketplace';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/investor" element={<InvestorDashboard />} />
         <Route path="/investor-profile" element={<InvestorProfile />} />
         <Route path="/advisor" element={<AdvisorDashboard />} />
+        <Route path="/marketplace" element={<Marketplace />} />
       </Routes>
     </Router>
   );
