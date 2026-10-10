@@ -10,6 +10,7 @@ import InvestorDashboard from './InvestorDashboard';
 import InvestorProfile from './InvestorProfile';
 import AdvisorDashboard from './AdvisorDashboard';
 import Marketplace from './Marketplace';
+import AdvisorProfile from './AdvisorProfile';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/investor-profile" element={<InvestorProfile />} />
         <Route path="/advisor" element={<AdvisorDashboard />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/advisor-profile" element={<AdvisorProfile />} />
       </Routes>
     </Router>
   );
