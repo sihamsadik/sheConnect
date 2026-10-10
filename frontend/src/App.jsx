@@ -8,6 +8,7 @@ import CreateIdea from './CreateIdea';
 import FounderProfile from './FounderProfile';
 import InvestorDashboard from './InvestorDashboard';
 import InvestorProfile from './InvestorProfile';
+import AdvisorDashboard from './AdvisorDashboard';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/profile" element={<FounderProfile />} />
         <Route path="/investor" element={<InvestorDashboard />} />
         <Route path="/investor-profile" element={<InvestorProfile />} />
+        <Route path="/advisor" element={<AdvisorDashboard />} />
       </Routes>
     </Router>
   );
