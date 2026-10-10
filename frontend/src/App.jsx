@@ -7,6 +7,7 @@ import EntrepreneurDashboard from './EntrepreneurDashboard';
 import CreateIdea from './CreateIdea';
 import FounderProfile from './FounderProfile';
 import InvestorDashboard from './InvestorDashboard';
+import InvestorProfile from './InvestorProfile';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/create-idea" element={<CreateIdea />} />
         <Route path="/profile" element={<FounderProfile />} />
         <Route path="/investor" element={<InvestorDashboard />} />
+        <Route path="/investor-profile" element={<InvestorProfile />} />
       </Routes>
     </Router>
   );
