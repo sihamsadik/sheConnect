@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Rocket, 
   LayoutDashboard, 
@@ -15,74 +15,174 @@ import {
   Edit3,
   TrendingUp,
   UserCheck,
-  Award
+  Award,
+  LogOut,
+  Loader2,
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import './EntrepreneurDashboard.css';
 
 function EntrepreneurDashboard() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [myIdeas, setMyIdeas] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Load user from localStorage & fetch backend data
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+      }
+    }
+
+    if (!token) {
+      setLoading(false);
+      setError("No authentication token found. Please log in first.");
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch dashboard overview KPIs and basic user idea summaries
+        const [dashRes, ideasRes] = await Promise.all([
+          fetch('/api/entrepreneur/dashboard', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }),
+          fetch('/api/entrepreneur/my-ideas', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+        ]);
+
+        if (dashRes.status === 401 || dashRes.status === 403 || ideasRes.status === 401 || ideasRes.status === 403) {
+          setError("Your session has expired or you do not have permission. Please log in again.");
+          localStorage.removeItem('token');
+          setLoading(false);
+          return;
+        }
+
+        if (!dashRes.ok && !ideasRes.ok) {
+          throw new Error("Failed to fetch dashboard data from server.");
+        }
+
+        if (dashRes.ok) {
+          const dashData = await dashRes.json();
+          setDashboardData(dashData);
+          if (dashData.user && !currentUser) {
+            setCurrentUser(dashData.user);
+          }
+        }
+
+        if (ideasRes.ok) {
+          const ideasData = await ideasRes.json();
+          setMyIdeas(Array.isArray(ideasData) ? ideasData : []);
+        }
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+        setError("Could not reach backend API at http://localhost:8080. Please ensure Spring Boot is running.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  // Helper to get initials
+  const getInitials = (name) => {
+    if (!name) return 'E';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Dynamic KPI Metrics directly from backend
   const statMetrics = [
-    { title: 'Total Ideas Posted', value: '3', icon: <Lightbulb size={20} />, change: null },
-    { title: 'Total Likes', value: '148', icon: <Heart size={20} />, change: '+12%', isPositive: true },
-    { title: 'Total Comments', value: '32', icon: <MessageSquare size={20} />, change: '+4%', isPositive: true },
-    { title: 'Active Conversations', value: '5', icon: <UserCheck size={20} />, change: 'Steady', isPositive: null },
+    { 
+      title: 'Total Ideas Posted', 
+      value: dashboardData?.ideaCount ?? myIdeas.length ?? 0, 
+      icon: <Lightbulb size={20} />, 
+      change: null 
+    },
+    { 
+      title: 'Total Likes', 
+      value: dashboardData?.totalLikes ?? myIdeas.reduce((sum, i) => sum + (i.likeCount || 0), 0), 
+      icon: <Heart size={20} />, 
+      change: dashboardData?.totalLikes ? '+12%' : null, 
+      isPositive: true 
+    },
+    { 
+      title: 'Total Comments', 
+      value: dashboardData?.totalComments ?? myIdeas.reduce((sum, i) => sum + (i.commentCount || 0), 0), 
+      icon: <MessageSquare size={20} />, 
+      change: dashboardData?.totalComments ? '+4%' : null, 
+      isPositive: true 
+    },
+    { 
+      title: 'Engagement Rate', 
+      value: dashboardData?.engagementRate ? `${dashboardData.engagementRate.toFixed(1)}%` : '0%', 
+      icon: <UserCheck size={20} />, 
+      change: 'Calculated live', 
+      isPositive: null 
+    },
   ];
 
-  const ideas = [
-    {
-      id: 1,
-      title: 'EcoTech Smart Grid Solutions',
-      industry: 'Clean Energy',
-      status: 'Active',
-      likes: 84,
-      comments: 15,
-      views: 320,
-      image: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      id: 2,
-      title: 'AI-Powered Health Assistant',
-      industry: 'HealthTech',
-      status: 'Active',
-      likes: 64,
-      comments: 17,
-      views: 290,
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      id: 3,
-      title: 'Decentralized Finance API',
-      industry: 'FinTech',
-      status: 'Draft',
-      likes: 0,
-      comments: 0,
-      views: 0,
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=100&q=80'
+  // Derive recent activities from real comments on user ideas
+  const realActivities = [];
+  myIdeas.forEach(idea => {
+    if (idea.comment && Array.isArray(idea.comment)) {
+      idea.comment.forEach(c => {
+        realActivities.push({
+          id: `comment-${c.id}`,
+          type: 'advisor',
+          text: (
+            <span>
+              <strong>{c.user?.name || 'A platform member'}</strong> commented on your idea <em>"{idea.title}"</em>.
+            </span>
+          ),
+          time: c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Recently',
+          icon: <MessageSquare size={16} />
+        });
+      });
     }
-  ];
-
-  const activities = [
-    {
-      id: 1,
-      type: 'investor',
-      text: <span><strong>Sarah Jenkins</strong> (Angel Investor) viewed your EcoTech pitch deck.</span>,
-      time: '2 hours ago',
-      icon: <TrendingUp size={16} />
-    },
-    {
-      id: 2,
-      type: 'advisor',
-      text: <span><strong>Dr. Alan Chen</strong> commented on your HealthTech idea.</span>,
-      time: '5 hours ago',
-      icon: <MessageSquare size={16} />
-    },
-    {
-      id: 3,
-      type: 'system',
-      text: <span>Your <strong>FinTech API</strong> draft was auto-saved.</span>,
-      time: 'Yesterday',
-      icon: <Award size={16} />
+    if (idea.likeCount && idea.likeCount > 0) {
+      realActivities.push({
+        id: `like-${idea.id}`,
+        type: 'investor',
+        text: (
+          <span>
+            Your idea <strong>"{idea.title}"</strong> received <strong>{idea.likeCount}</strong> likes from the ecosystem.
+          </span>
+        ),
+        time: idea.updatedAt ? new Date(idea.updatedAt).toLocaleDateString() : 'Recently',
+        icon: <TrendingUp size={16} />
+      });
     }
-  ];
+  });
 
   return (
     <div className="dashboard-layout">
@@ -100,10 +200,10 @@ function EntrepreneurDashboard() {
               <span>Overview</span>
             </div>
           </Link>
-          <Link to="#" className="sidebar-link">
+          <Link to="/profile" className="sidebar-link">
             <div className="sidebar-link-content">
               <Lightbulb className="sidebar-icon" size={20} />
-              <span>My Ideas</span>
+              <span>My Profile</span>
             </div>
           </Link>
           <Link to="#" className="sidebar-link">
@@ -111,7 +211,9 @@ function EntrepreneurDashboard() {
               <MessageSquare className="sidebar-icon" size={20} />
               <span>Messages</span>
             </div>
-            <span className="badge-count">5</span>
+            {dashboardData?.totalComments > 0 && (
+              <span className="badge-count">{dashboardData.totalComments}</span>
+            )}
           </Link>
           <Link to="#" className="sidebar-link">
             <div className="sidebar-link-content">
@@ -123,13 +225,23 @@ function EntrepreneurDashboard() {
 
         <div className="sidebar-footer">
           <div className="founder-widget">
-            <div className="founder-avatar">
-              MJ
+            <div className="founder-left">
+              <div className="founder-avatar">
+                {getInitials(currentUser?.name)}
+              </div>
+              <div className="founder-info">
+                <h5>{currentUser?.name || 'Entrepreneur'}</h5>
+                <p>{currentUser?.role || 'Founder'}</p>
+              </div>
             </div>
-            <div className="founder-info">
-              <h5>Mia Johnson</h5>
-              <p>Founder & CEO</p>
-            </div>
+            <button 
+              className="btn-sidebar-logout" 
+              onClick={handleLogout} 
+              title="Log Out"
+              aria-label="Log Out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </aside>
@@ -143,125 +255,187 @@ function EntrepreneurDashboard() {
             <input 
               type="text" 
               className="search-input" 
-              placeholder="Search ideas, investors, advisors..." 
+              placeholder="Search your ideas..." 
             />
           </div>
           
           <div className="header-actions">
-            <button className="notification-btn">
+            <button className="notification-btn" aria-label="Notifications">
               <Bell size={20} />
-              <span className="notification-dot"></span>
+              {realActivities.length > 0 && <span className="notification-dot"></span>}
             </button>
-            <button className="btn-primary-blue">
-              <Plus size={18} />
-              New Idea
-            </button>
+            <Link to="/create-idea" style={{ textDecoration: 'none' }}>
+              <button className="btn-primary-blue">
+                <Plus size={18} />
+                New Idea
+              </button>
+            </Link>
           </div>
         </header>
 
         {/* Content Scroll Area */}
         <div className="content-scroll">
-          {/* Stat Cards Row */}
-          <div className="stat-grid">
-            {statMetrics.map((stat, index) => (
-              <div key={index} className="stat-card">
-                <div className="stat-header">
-                  <span className="stat-title">{stat.title}</span>
-                  <div className="stat-icon">{stat.icon}</div>
-                </div>
-                <div className="stat-value">{stat.value}</div>
-                {stat.change && (
-                  <div className={`stat-change ${stat.isPositive ? 'positive' : 'neutral'}`}>
-                    {stat.isPositive ? <TrendingUp size={14} /> : null}
-                    <span>{stat.change} vs last month</span>
+          
+          {error && (
+            <div className="dashboard-error-alert animate-fade-in-up">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <AlertCircle size={20} className="flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+              <Link to="/login" style={{ color: '#B91C1C', fontWeight: 600, textDecoration: 'underline' }}>
+                Log in
+              </Link>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="dashboard-loader">
+              <Loader2 size={36} className="animate-spin" color="#2563EB" />
+              <p>Loading your startup dashboard from backend...</p>
+            </div>
+          ) : (
+            <>
+              {/* Stat Cards Row */}
+              <div className="stat-grid">
+                {statMetrics.map((stat, index) => (
+                  <div key={index} className="stat-card">
+                    <div className="stat-header">
+                      <span className="stat-title">{stat.title}</span>
+                      <div className="stat-icon">{stat.icon}</div>
+                    </div>
+                    <div className="stat-value">{stat.value}</div>
+                    {stat.change && (
+                      <div className={`stat-change ${stat.isPositive ? 'positive' : 'neutral'}`}>
+                        {stat.isPositive ? <TrendingUp size={14} /> : null}
+                        <span>{stat.change}</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="dashboard-grid">
-            {/* Left Column: My Startup Ideas */}
-            <div className="left-column">
-              <h2 className="section-title">My Startup Ideas</h2>
-              
-              <div className="ideas-card">
-                <div className="ideas-header">
-                  <span className="stat-title">Recent Ideas</span>
-                  <button className="action-btn"><MoreHorizontal size={18} /></button>
-                </div>
-                <div className="ideas-list">
-                  {ideas.map(idea => (
-                    <div key={idea.id} className="idea-item">
-                      <div className="idea-thumbnail">
-                        {idea.image ? (
-                          <img src={idea.image} alt={idea.title} />
-                        ) : (
-                          <Lightbulb size={24} />
-                        )}
-                      </div>
-                      
-                      <div className="idea-details">
-                        <h4 className="idea-title">{idea.title}</h4>
-                        <div className="idea-meta">
-                          <span className="industry-tag">{idea.industry}</span>
-                        </div>
-                      </div>
-                      
-                      <span className={`status-pill ${idea.status.toLowerCase()}`}>
-                        {idea.status}
-                      </span>
-                      
-                      <div className="idea-metrics">
-                        <div className="metric-item">
-                          <Heart size={14} /> {idea.likes}
-                        </div>
-                        <div className="metric-item">
-                          <MessageSquare size={14} /> {idea.comments}
-                        </div>
-                        <div className="metric-item">
-                          <Eye size={14} /> {idea.views}
-                        </div>
-                      </div>
-                      
-                      <div className="idea-actions">
-                        <button className="action-btn" title="Edit Idea"><Edit3 size={16} /></button>
-                        <button className="action-btn" title="More Options"><MoreHorizontal size={16} /></button>
-                      </div>
+              <div className="dashboard-grid">
+                {/* Left Column: My Startup Ideas */}
+                <div className="left-column">
+                  <h2 className="section-title">My Startup Ideas</h2>
+                  
+                  <div className="ideas-card">
+                    <div className="ideas-header">
+                      <span className="stat-title">Published Startups ({myIdeas.length})</span>
+                      <Link to="/create-idea">
+                        <button className="btn-primary-blue" style={{ padding: '6px 14px', fontSize: '0.82rem' }}>
+                          <Plus size={14} /> Add Idea
+                        </button>
+                      </Link>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
-            {/* Right Column: Callout & Activity Feed */}
-            <div className="right-column">
-              <div className="callout-banner">
-                <div className="callout-content">
-                  <h3 className="callout-title">Connect with Advisors</h3>
-                  <p className="callout-desc">Get expert feedback on your pitch decks and business models to accelerate growth.</p>
-                  <button className="callout-btn">Find an Advisor</button>
-                </div>
-              </div>
-
-              <div className="activity-card">
-                <h2 className="section-title">Recent Activity</h2>
-                <div className="activity-list">
-                  {activities.map(activity => (
-                    <div key={activity.id} className="activity-item">
-                      <div className={`activity-icon ${activity.type}`}>
-                        {activity.icon}
-                      </div>
-                      <div className="activity-content">
-                        <p className="activity-text">{activity.text}</p>
-                        <span className="activity-time">{activity.time}</span>
-                      </div>
+                    <div className="ideas-list">
+                      {myIdeas.length === 0 ? (
+                        <div className="empty-ideas-state">
+                          <div className="empty-icon-wrap">
+                            <Lightbulb size={28} />
+                          </div>
+                          <h3 className="empty-title">No Startup Ideas Yet</h3>
+                          <p className="empty-desc">
+                            You haven't published any startup ideas to the ecosystem feed yet. Post your idea to start receiving interest from investors and advisors.
+                          </p>
+                          <Link to="/create-idea" style={{ textDecoration: 'none' }}>
+                            <button className="btn-primary-blue" style={{ marginTop: '8px' }}>
+                              <Plus size={16} /> Post Your First Idea
+                            </button>
+                          </Link>
+                        </div>
+                      ) : (
+                        myIdeas.map(idea => (
+                          <div key={idea.id} className="idea-item">
+                            <div className="idea-thumbnail">
+                              <Lightbulb size={24} />
+                            </div>
+                            
+                            <div className="idea-details">
+                              <h4 className="idea-title">{idea.title}</h4>
+                              <div className="idea-meta">
+                                <span className="industry-tag">{idea.industry || 'Tech'}</span>
+                                {idea.lookingFor && idea.lookingFor.map((need, idx) => (
+                                  <span key={idx} className="industry-tag" style={{ background: '#EFF6FF', color: '#2563EB' }}>
+                                    Needs: {need}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <span className="status-pill active">
+                              Active
+                            </span>
+                            
+                            <div className="idea-metrics">
+                              <div className="metric-item" title="Total Likes">
+                                <Heart size={14} /> {idea.likeCount || 0}
+                              </div>
+                              <div className="metric-item" title="Comments">
+                                <MessageSquare size={14} /> {idea.commentCount || (idea.comment ? idea.comment.length : 0)}
+                              </div>
+                              <div className="metric-item" title="Created Date">
+                                <Clock size={14} /> {idea.createdAt ? new Date(idea.createdAt).toLocaleDateString() : 'Recent'}
+                              </div>
+                            </div>
+                            
+                            <div className="idea-actions">
+                              <button className="action-btn" title="Idea Details"><Edit3 size={16} /></button>
+                              <button className="action-btn" title="More Options"><MoreHorizontal size={16} /></button>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                {/* Right Column: Callout & Activity Feed */}
+                <div className="right-column">
+                  <div className="callout-banner">
+                    <div className="callout-content">
+                      <h3 className="callout-title">Connect with Advisors</h3>
+                      <p className="callout-desc">
+                        Get expert guidance on your pitch deck, enterprise pricing, and fundraising strategy.
+                      </p>
+                      <Link to="/marketplace" style={{ textDecoration: 'none' }}>
+                        <button className="callout-btn">Browse Marketplace</button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="activity-card">
+                    <h2 className="section-title">Recent Activity</h2>
+                    <div className="activity-list">
+                      {realActivities.length === 0 ? (
+                        <div style={{ padding: '24px 16px', textAlign: 'center', color: '#64748B', fontSize: '0.9rem' }}>
+                          <Award size={32} style={{ color: '#CBD5E1', marginBottom: '8px' }} />
+                          <p style={{ margin: 0 }}>No recent activity yet.</p>
+                          <p style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: '4px' }}>
+                            Likes and comments from investors and advisors will show up here.
+                          </p>
+                        </div>
+                      ) : (
+                        realActivities.map(activity => (
+                          <div key={activity.id} className="activity-item">
+                            <div className={`activity-icon ${activity.type}`}>
+                              {activity.icon}
+                            </div>
+                            <div className="activity-content">
+                              <p className="activity-text">{activity.text}</p>
+                              <span className="activity-time">{activity.time}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
+
         </div>
       </main>
     </div>

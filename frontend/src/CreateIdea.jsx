@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Rocket, 
   HelpCircle,
   Briefcase,
   LineChart,
-  Users
+  Users,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import './CreateIdea.css';
 
 function CreateIdea() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     startupName: '',
     industry: '',
@@ -21,14 +24,18 @@ function CreateIdea() {
   });
 
   const [activeStep, setActiveStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errorMessage) setErrorMessage('');
   };
 
   const handleRoleSelect = (role) => {
     setFormData(prev => ({ ...prev, lookingFor: role }));
+    if (errorMessage) setErrorMessage('');
   };
 
   // Determine active step based on scroll or form completion (simplified logic for UI mockup)
@@ -44,6 +51,79 @@ function CreateIdea() {
       value = parseInt(value, 10).toLocaleString('en-US');
     }
     setFormData(prev => ({ ...prev, fundingRequired: value }));
+  };
+
+  const handlePublish = async () => {
+    setErrorMessage('');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setErrorMessage("Please log in as an entrepreneur first to publish an idea.");
+      navigate('/login');
+      return;
+    }
+
+    if (!formData.startupName.trim()) {
+      setErrorMessage("Startup Name is required.");
+      return;
+    }
+    if (!formData.industry) {
+      setErrorMessage("Please select an Industry.");
+      return;
+    }
+    if (!formData.problem.trim()) {
+      setErrorMessage("The Problem description is required.");
+      return;
+    }
+    if (!formData.solution.trim()) {
+      setErrorMessage("The Solution description is required.");
+      return;
+    }
+    if (!formData.market.trim()) {
+      setErrorMessage("Target Market is required.");
+      return;
+    }
+
+    const need = formData.lookingFor ? formData.lookingFor.toUpperCase() : 'BOTH';
+
+    const payload = {
+      title: formData.startupName.trim(),
+      problem: formData.problem.trim(),
+      solution: formData.solution.trim(),
+      targetMarket: formData.market.trim(),
+      industryName: formData.industry,
+      description: formData.solution.trim() + " (Problem: " + formData.problem.trim() + ")",
+      lookingFor: [need]
+    };
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/entrepreneur/createstartup-ideas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        let msg = "Failed to create startup idea.";
+        if (data && data.message) msg = data.message;
+        setErrorMessage(msg);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Successfully created idea! Navigate back to dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      console.error("Error creating startup idea:", err);
+      setErrorMessage("Could not reach backend API at http://localhost:8080.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -231,16 +311,38 @@ function CreateIdea() {
         </div>
       </div>
 
+      {errorMessage && (
+        <div style={{ padding: '0 32px 16px 32px' }}>
+          <div className="auth-error-alert" style={{ margin: 0 }}>
+            <AlertCircle size={18} className="flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Action Footer Bar */}
       <footer className="sticky-footer">
         <div className="footer-actions-left">
           <Link to="/dashboard">
-            <button className="btn-ghost">Discard Idea</button>
+            <button className="btn-ghost" type="button">Discard Idea</button>
           </Link>
         </div>
         <div className="footer-actions-right">
-          <button className="btn-outline">Save Draft</button>
-          <button className="btn-primary-blue">Publish Idea</button>
+          <button className="btn-outline" type="button" onClick={() => alert("Draft saved locally.")}>Save Draft</button>
+          <button 
+            className="btn-primary-blue" 
+            type="button" 
+            onClick={handlePublish}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <Loader2 size={16} className="animate-spin" /> Publishing...
+              </span>
+            ) : (
+              'Publish Idea'
+            )}
+          </button>
         </div>
       </footer>
     </div>

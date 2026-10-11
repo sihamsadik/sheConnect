@@ -49,10 +49,8 @@ public class StartUpIdeaService {
             throw new IllegalArgumentException("title, problem, solution, targetMarket, industryName are required");
         }
 
-        Industry industry = industryRepository.findByName(request.getIndustryName().trim())
-                .orElseThrow(() -> new ResourceNotFoundException(
-            "industry not found with id: " + request.getIndustryName()
-        ));
+        Industry industry = industryRepository.findByNameIgnoreCase(request.getIndustryName().trim())
+                .orElseGet(() -> industryRepository.save(new Industry(null, request.getIndustryName().trim().toUpperCase())));
 
         Set<EntrepreneurNeed> lookingFor = new HashSet<>();
         if (request.getLookingFor() != null) {
