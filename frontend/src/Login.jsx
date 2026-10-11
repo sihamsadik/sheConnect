@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Rocket, 
   Eye, 
   EyeOff, 
-  Mail,
-  Lock
+  Mail, 
+  Lock,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import './Login.css';
 
 function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,12 +28,64 @@ function Login() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    if (errorMessage) setErrorMessage('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt", formData);
-    // Proceed with login logic
+    setErrorMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password
+        })
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        let errorText = "Invalid email or password.";
+        if (data && data.message) {
+          errorText = data.message;
+        }
+        setErrorMessage(errorText);
+        setIsLoading(false);
+        return;
+      }
+
+      // Success: Save token & user profile
+      if (data) {
+        if (data.token) localStorage.setItem('token', data.token);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify({
+          name: data.name,
+          email: data.email,
+          role: data.role
+        }));
+
+        // Navigate based on role
+        const roleUpper = (data.role || '').toUpperCase();
+        if (roleUpper === 'INVESTOR') {
+          navigate('/investor');
+        } else if (roleUpper === 'ADVISOR') {
+          navigate('/advisor');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    } catch (err) {
+      console.error("Login network error:", err);
+      setErrorMessage("Could not reach backend at http://localhost:8080. Please ensure the Spring Boot server is running.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,6 +101,13 @@ function Login() {
           </div>
           <p className="login-tagline">Welcome back. Log in to your account.</p>
         </div>
+
+        {errorMessage && (
+          <div className="auth-error-alert animate-fade-in-up">
+            <AlertCircle size={18} className="flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <div className="social-logins">
           <button type="button" className="btn-social google-btn">
@@ -120,8 +184,18 @@ function Login() {
             <a href="#" className="forgot-password">Forgot password?</a>
           </div>
 
-          <button type="submit" className="btn btn-primary full-width submit-btn">
-            Log In
+          <button 
+            type="submit" 
+            className="btn btn-primary full-width submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="btn-loading-content">
+                <Loader2 size={18} className="animate-spin" /> Logging In...
+              </span>
+            ) : (
+              'Log In'
+            )}
           </button>
 
           <div className="login-footer">
