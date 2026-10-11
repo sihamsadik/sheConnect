@@ -168,5 +168,70 @@ public class EntrepreneurApiController {
         )).toList();
         return ResponseEntity.ok(response);
     }
-    
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        User fullUser = userRepository.findById(user.getId()).orElse(user);
+        long ideaCount = dashboardService.getIdeaCount(user.getId());
+        int totalLikes = dashboardService.getTotalLikes(user.getId());
+        long totalComments = dashboardService.getTotalComments(user.getId());
+        List<StartUpIdea> userIdeas = startUpIdeaService.MyIdeas(fullUser);
+
+        List<StartUpIdeaResponse> ideaResponses = userIdeas.stream().map(i -> new StartUpIdeaResponse(
+            i.getId(),
+            i.getUser(),
+            i.getTitle(),
+            i.getIndustry() != null ? i.getIndustry().getName() : "General",
+            i.getLookingFor() != null ? i.getLookingFor().stream().map(n -> n.getName()).sorted().toList() : List.of(),
+            i.getUpdatedAt(),
+            i.getCreatedAt(),
+            fullUser,
+            likeRepository.countByStartupIdeaId(i.getId()),
+            commentRepository.countByStartupIdeaId(i.getId()),
+            false,
+            List.of()
+        )).toList();
+
+        java.util.Map<String, Object> profile = new java.util.HashMap<>();
+        profile.put("id", fullUser.getId());
+        profile.put("name", fullUser.getName());
+        profile.put("email", fullUser.getEmail());
+        profile.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "ENTREPRENEUR");
+        profile.put("bio", fullUser.getBio());
+        profile.put("title", fullUser.getTitle());
+        profile.put("ideaCount", ideaCount);
+        profile.put("totalLikes", totalLikes);
+        profile.put("totalComments", totalComments);
+        profile.put("ideas", ideaResponses);
+
+        return ResponseEntity.ok(profile);
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(Authentication authentication, @RequestBody java.util.Map<String, String> updates) {
+        User user = (User) authentication.getPrincipal();
+        User fullUser = userRepository.findById(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").isBlank()) {
+            fullUser.setName(updates.get("name").trim());
+        }
+        if (updates.containsKey("bio")) {
+            fullUser.setBio(updates.get("bio"));
+        }
+        if (updates.containsKey("title")) {
+            fullUser.setTitle(updates.get("title"));
+        }
+
+        userRepository.save(fullUser);
+
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("id", fullUser.getId());
+        resp.put("name", fullUser.getName());
+        resp.put("email", fullUser.getEmail());
+        resp.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "ENTREPRENEUR");
+        resp.put("bio", fullUser.getBio());
+        resp.put("title", fullUser.getTitle());
+        return ResponseEntity.ok(resp);
+    }
 }

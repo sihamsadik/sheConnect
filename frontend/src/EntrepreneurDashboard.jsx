@@ -82,7 +82,7 @@ function EntrepreneurDashboard() {
         if (dashRes.ok) {
           const dashData = await dashRes.json();
           setDashboardData(dashData);
-          if (dashData.user && !currentUser) {
+          if (dashData.user) {
             setCurrentUser(dashData.user);
           }
         }
@@ -109,15 +109,36 @@ function EntrepreneurDashboard() {
     navigate('/login');
   };
 
-  // Helper to get initials
+  // Safe display helpers to prevent rendering raw object entities as React children
+  const getRoleDisplay = (role) => {
+    if (!role) return 'Founder';
+    if (typeof role === 'object' && role !== null) return role.name || 'Founder';
+    return String(role);
+  };
+
+  const getIndustryDisplay = (ind) => {
+    if (!ind) return 'Tech';
+    if (typeof ind === 'object' && ind !== null) return ind.name || 'Tech';
+    return String(ind);
+  };
+
+  const getNeedDisplay = (need) => {
+    if (!need) return '';
+    if (typeof need === 'object' && need !== null) return need.name || '';
+    return String(need);
+  };
+
+  // Helper to get initials safely
   const getInitials = (name) => {
-    if (!name) return 'E';
+    if (!name || typeof name !== 'string') return 'E';
     return name
+      .trim()
       .split(' ')
+      .filter(Boolean)
       .map(n => n[0])
       .join('')
       .toUpperCase()
-      .substring(0, 2);
+      .substring(0, 2) || 'E';
   };
 
   // Dynamic KPI Metrics directly from backend
@@ -156,12 +177,13 @@ function EntrepreneurDashboard() {
   myIdeas.forEach(idea => {
     if (idea.comment && Array.isArray(idea.comment)) {
       idea.comment.forEach(c => {
+        const authorName = typeof c.user === 'object' && c.user !== null ? (c.user.name || 'A platform member') : (c.user || 'A platform member');
         realActivities.push({
           id: `comment-${c.id}`,
           type: 'advisor',
           text: (
             <span>
-              <strong>{c.user?.name || 'A platform member'}</strong> commented on your idea <em>"{idea.title}"</em>.
+              <strong>{authorName}</strong> commented on your idea <em>"{idea.title}"</em>.
             </span>
           ),
           time: c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Recently',
@@ -231,7 +253,7 @@ function EntrepreneurDashboard() {
               </div>
               <div className="founder-info">
                 <h5>{currentUser?.name || 'Entrepreneur'}</h5>
-                <p>{currentUser?.role || 'Founder'}</p>
+                <p>{getRoleDisplay(currentUser?.role)}</p>
               </div>
             </div>
             <button 
@@ -355,10 +377,10 @@ function EntrepreneurDashboard() {
                             <div className="idea-details">
                               <h4 className="idea-title">{idea.title}</h4>
                               <div className="idea-meta">
-                                <span className="industry-tag">{idea.industry || 'Tech'}</span>
+                                <span className="industry-tag">{getIndustryDisplay(idea.industry)}</span>
                                 {idea.lookingFor && idea.lookingFor.map((need, idx) => (
                                   <span key={idx} className="industry-tag" style={{ background: '#EFF6FF', color: '#2563EB' }}>
-                                    Needs: {need}
+                                    Needs: {getNeedDisplay(need)}
                                   </span>
                                 ))}
                               </div>
