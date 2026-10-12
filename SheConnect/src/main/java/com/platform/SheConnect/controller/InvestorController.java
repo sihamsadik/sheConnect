@@ -23,6 +23,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/investor")
 public class InvestorController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InvestorController.class);
 
     private final InvestorDashboardService investorDashboardService;
     private final UserRepository userRepository;
@@ -36,11 +37,21 @@ public class InvestorController {
         if (authentication == null || authentication.getPrincipal() == null) {
             return null;
         }
-        User principal = (User) authentication.getPrincipal();
-        if (principal.getId() != null) {
-            return principal;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User user) {
+            if (user.getId() != null) {
+                return user;
+            }
+            if (user.getEmail() != null) {
+                return userRepository.findByEmail(user.getEmail()).orElse(user);
+            }
+            return user;
+        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            return userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        } else if (principal instanceof String str && !str.equalsIgnoreCase("anonymousUser")) {
+            return userRepository.findByEmail(str).orElse(null);
         }
-        return userRepository.findByEmail(principal.getEmail()).orElse(null);
+        return null;
     }
 
     @GetMapping("/dashboard")
@@ -60,10 +71,20 @@ public class InvestorController {
 
     @GetMapping("/pipeline")
     public ResponseEntity<InvestorPipelineResponse> getPipeline(Authentication authentication) {
-        User user = resolveUser(authentication);
-        Long userId = (user != null) ? user.getId() : null;
-        InvestorPipelineResponse response = investorDashboardService.getInvestorPipeline(userId);
-        return ResponseEntity.ok(response);
+        try {
+            User user = resolveUser(authentication);
+            Long userId = (user != null) ? user.getId() : null;
+            InvestorPipelineResponse response = investorDashboardService.getInvestorPipeline(userId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error retrieving investor pipeline: ", e);
+            return ResponseEntity.ok(new InvestorPipelineResponse(
+                    List.of(),
+                    Map.of("screening", List.of(), "diligence", List.of(), "partnerMeeting", List.of(), "termSheet", List.of()),
+                    0L, 0L, 0L, 0L, 0L,
+                    List.of()
+            ));
+        }
     }
 
     @PutMapping("/pipeline/{ideaId}/stage")

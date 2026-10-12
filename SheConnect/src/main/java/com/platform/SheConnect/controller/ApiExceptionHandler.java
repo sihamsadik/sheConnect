@@ -19,9 +19,12 @@ import com.platform.SheConnect.exception.UnauthorizedException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> badRequest(IllegalArgumentException ex, HttpServletRequest request) {
@@ -71,7 +74,8 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> unexpected(Exception ex, HttpServletRequest request) {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request, null);
+        log.error("Unhandled exception processing request [{}]: {}", request != null ? request.getRequestURI() : "unknown", ex.getMessage(), ex);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage(), request, null);
     }
 
     private static ResponseEntity<ApiErrorResponse> error(

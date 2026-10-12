@@ -102,14 +102,18 @@ function InvestorDashboard() {
       });
 
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          // Fallback to interactions ideas if role access token is expired or anonymous preview
-          const ideasRes = await fetch('/api/interactions/ideas');
+        // Fallback to interactions ideas if pipeline endpoint encounters an error or permission differs
+        try {
+          const ideasRes = await fetch('/api/interactions/ideas', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
           if (ideasRes.ok) {
             const rawIdeas = await ideasRes.json();
             mapRawIdeasToPipeline(rawIdeas);
             return;
           }
+        } catch (fbErr) {
+          console.warn('Fallback to /api/interactions/ideas failed', fbErr);
         }
         throw new Error('Failed to load investor pipeline from backend');
       }

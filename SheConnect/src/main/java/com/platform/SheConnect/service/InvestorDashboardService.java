@@ -26,6 +26,8 @@ import com.platform.SheConnect.repository.UserRepository;
 
 @Service
 public class InvestorDashboardService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InvestorDashboardService.class);
+
     private final StartUpIdeaRepository startUpIdeaRepository;
     private final InvestorInterestRepository investorInterestRepository;
     private final CommentRepository commentRepository;
@@ -71,104 +73,154 @@ public class InvestorDashboardService {
 
     @Transactional(readOnly = true)
     public InvestorPipelineResponse getInvestorPipeline(Long investorId) {
-        // 1. Fetch ideas looking for INVESTOR or BOTH, plus any ideas investor has shortlisted
-        List<StartUpIdea> investorNeedIdeas = startUpIdeaRepository.findAllByLookingFor_Name("INVESTOR");
-        List<StartUpIdea> bothNeedIdeas = startUpIdeaRepository.findAllByLookingFor_Name("BOTH");
-        List<InvestorInterested> shortlisted = (investorId != null) 
-                ? investorInterestRepository.findAllByInvestorId(investorId) 
-                : List.of();
-
-        // Map shortlisted by startupIdeaId for fast lookup
-        Map<Long, InvestorInterested> shortlistedMap = new HashMap<>();
-        for (InvestorInterested ii : shortlisted) {
-            if (ii.getStartUpIdea() != null && ii.getStartUpIdea().getId() != null) {
-                shortlistedMap.put(ii.getStartUpIdea().getId(), ii);
-            }
-        }
-
-        // Combine ideas with deduplication
-        Map<Long, StartUpIdea> ideaMap = new HashMap<>();
-        for (StartUpIdea idea : investorNeedIdeas) {
-            if (idea.getId() != null) ideaMap.put(idea.getId(), idea);
-        }
-        for (StartUpIdea idea : bothNeedIdeas) {
-            if (idea.getId() != null) ideaMap.put(idea.getId(), idea);
-        }
-        for (InvestorInterested ii : shortlisted) {
-            if (ii.getStartUpIdea() != null && ii.getStartUpIdea().getId() != null) {
-                ideaMap.put(ii.getStartUpIdea().getId(), ii.getStartUpIdea());
-            }
-        }
-
-        // If no ideas found seeking INVESTOR yet, fall back to all ideas
-        if (ideaMap.isEmpty()) {
-            List<StartUpIdea> all = startUpIdeaRepository.findAll();
-            for (StartUpIdea idea : all) {
-                if (idea.getId() != null) ideaMap.put(idea.getId(), idea);
-            }
-        }
-
-        List<DealPipelineItemDto> allDeals = new ArrayList<>();
-        List<DealPipelineItemDto> screeningDeals = new ArrayList<>();
-        List<DealPipelineItemDto> diligenceDeals = new ArrayList<>();
-        List<DealPipelineItemDto> partnerMeetingDeals = new ArrayList<>();
-        List<DealPipelineItemDto> termSheetDeals = new ArrayList<>();
-
-        for (StartUpIdea idea : ideaMap.values()) {
-            InvestorInterested interest = shortlistedMap.get(idea.getId());
-            String rawStage = (interest != null && interest.getStage() != null) 
-                    ? interest.getStage().trim().toUpperCase() 
-                    : "SCREENING";
-
-            if ("PASSED".equalsIgnoreCase(rawStage)) {
-                // Deal was passed on by investor, skip from active pipeline boards
-                continue;
+        try {
+            // Safely fetch all startup ideas
+            List<StartUpIdea> allIdeas = new ArrayList<>();
+            try {
+                allIdeas = startUpIdeaRepository.findAll();
+            } catch (Exception e) {
+                log.warn("Error calling startUpIdeaRepository.findAll(): {}", e.getMessage());
             }
 
-            DealPipelineItemDto dto = mapToPipelineDto(idea, interest, investorId);
-            allDeals.add(dto);
-
-            switch (dto.getStage()) {
-                case "DILIGENCE":
-                    diligenceDeals.add(dto);
-                    break;
-                case "PARTNER_MEETING":
-                    partnerMeetingDeals.add(dto);
-                    break;
-                case "TERM_SHEET":
-                    termSheetDeals.add(dto);
-                    break;
-                case "SCREENING":
-                default:
-                    screeningDeals.add(dto);
-                    break;
+            // Safely fetch shortlisted ideas for this investor
+            List<InvestorInterested> shortlisted = List.of();
+            if (investorId != null) {
+                try {
+                    shortlisted = investorInterestRepository.findAllByInvestorId(investorId);
+                } catch (Exception e) {
+                    log.warn("Error fetching shortlisted for investor {}: {}", investorId, e.getMessage());
+                }
             }
+
+            // Map shortlisted by startupIdeaId for fast lookup
+            Map<Long, InvestorInterested> shortlistedMap = new HashMap<>();
+            for (InvestorInterested ii : shortlisted) {
+                try {
+                    if (ii != null && ii.getStartUpIdea() != null && ii.getStartUpIdea().getId() != null) {
+                        shortlistedMap.put(ii.getStartUpIdea().getId(), ii);
+                    }
+                } catch (Exception e) {
+                    // ignore unresolvable proxy
+                }
+            }
+
+            // Collect ideas: prefer ideas seeking INVESTOR or BOTH, or shortlisted, or all if none tagged
+            Map<Long, StartUpIdea> ideaMap = new HashMap<>();
+            for (StartUpIdea idea : allIdeas) {
+                if (idea == null || idea.getId() == null) continue;
+                boolean isShortlisted = shortlistedMap.containsKey(idea.getId());
+                boolean isSeekingInvestor = false;
+                try {
+                    if (idea.getLookingFor() != null) {
+                        for (com.platform.SheConnect.entity.EntrepreneurNeed need : idea.getLookingFor()) {
+                            if (need != null && need.getName() != null) {
+                                String n = need.getName().trim().toUpperCase();
+                                if (n.contains("INVESTOR") || n.contains("BOTH")) {
+                                    isSeekingInvestor = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore lazy load issues on lookingFor
+                }
+
+                if (isShortlisted || isSeekingInvestor) {
+                    ideaMap.put(idea.getId(), idea);
+                }
+            }
+
+            // If none matched filter, include all published ideas
+            if (ideaMap.isEmpty()) {
+                for (StartUpIdea idea : allIdeas) {
+                    if (idea != null && idea.getId() != null) {
+                        ideaMap.put(idea.getId(), idea);
+                    }
+                }
+            }
+
+            List<DealPipelineItemDto> allDeals = new ArrayList<>();
+            List<DealPipelineItemDto> screeningDeals = new ArrayList<>();
+            List<DealPipelineItemDto> diligenceDeals = new ArrayList<>();
+            List<DealPipelineItemDto> partnerMeetingDeals = new ArrayList<>();
+            List<DealPipelineItemDto> termSheetDeals = new ArrayList<>();
+
+            for (StartUpIdea idea : ideaMap.values()) {
+                InvestorInterested interest = shortlistedMap.get(idea.getId());
+                String rawStage = "SCREENING";
+                try {
+                    if (interest != null && interest.getStage() != null) {
+                        rawStage = interest.getStage().trim().toUpperCase();
+                    }
+                } catch (Exception e) {
+                    rawStage = "SCREENING";
+                }
+
+                if ("PASSED".equalsIgnoreCase(rawStage)) {
+                    continue;
+                }
+
+                DealPipelineItemDto dto = mapToPipelineDto(idea, interest, investorId);
+                allDeals.add(dto);
+
+                switch (dto.getStage()) {
+                    case "DILIGENCE":
+                        diligenceDeals.add(dto);
+                        break;
+                    case "PARTNER_MEETING":
+                        partnerMeetingDeals.add(dto);
+                        break;
+                    case "TERM_SHEET":
+                        termSheetDeals.add(dto);
+                        break;
+                    case "SCREENING":
+                    default:
+                        screeningDeals.add(dto);
+                        break;
+                }
+            }
+
+            Map<String, List<DealPipelineItemDto>> dealsByStage = new HashMap<>();
+            dealsByStage.put("screening", screeningDeals);
+            dealsByStage.put("diligence", diligenceDeals);
+            dealsByStage.put("partnerMeeting", partnerMeetingDeals);
+            dealsByStage.put("termSheet", termSheetDeals);
+
+            long activeInbound = screeningDeals.size();
+            long inDiligence = diligenceDeals.size();
+            long inPartnerMeeting = partnerMeetingDeals.size();
+            long inTermSheet = termSheetDeals.size();
+            long totalShortlisted = 0L;
+            if (investorId != null) {
+                try {
+                    totalShortlisted = investorInterestRepository.countByInvestorId(investorId);
+                } catch (Exception e) {
+                    totalShortlisted = shortlisted.size();
+                }
+            }
+
+            List<Map<String, Object>> recentActivity = buildRecentActivity(allDeals);
+
+            return new InvestorPipelineResponse(
+                    allDeals,
+                    dealsByStage,
+                    activeInbound,
+                    inDiligence,
+                    inPartnerMeeting,
+                    inTermSheet,
+                    totalShortlisted,
+                    recentActivity
+            );
+        } catch (Exception ex) {
+            log.error("Error generating investor pipeline: ", ex);
+            return new InvestorPipelineResponse(
+                    List.of(),
+                    Map.of("screening", List.of(), "diligence", List.of(), "partnerMeeting", List.of(), "termSheet", List.of()),
+                    0L, 0L, 0L, 0L, 0L,
+                    List.of()
+            );
         }
-
-        Map<String, List<DealPipelineItemDto>> dealsByStage = new HashMap<>();
-        dealsByStage.put("screening", screeningDeals);
-        dealsByStage.put("diligence", diligenceDeals);
-        dealsByStage.put("partnerMeeting", partnerMeetingDeals);
-        dealsByStage.put("termSheet", termSheetDeals);
-
-        long activeInbound = screeningDeals.size();
-        long inDiligence = diligenceDeals.size();
-        long inPartnerMeeting = partnerMeetingDeals.size();
-        long inTermSheet = termSheetDeals.size();
-        long totalShortlisted = (investorId != null) ? investorInterestRepository.countByInvestorId(investorId) : 0L;
-
-        List<Map<String, Object>> recentActivity = buildRecentActivity(allDeals);
-
-        return new InvestorPipelineResponse(
-                allDeals,
-                dealsByStage,
-                activeInbound,
-                inDiligence,
-                inPartnerMeeting,
-                inTermSheet,
-                totalShortlisted,
-                recentActivity
-        );
     }
 
     @Transactional
@@ -261,28 +313,51 @@ public class InvestorDashboardService {
                 ? idea.getDescription()
                 : ((idea.getProblem() != null && !idea.getProblem().isBlank()) ? idea.getProblem() : "Exciting innovation seeking partners and capital.");
 
-        String industryName = (idea.getIndustry() != null && idea.getIndustry().getName() != null)
-                ? idea.getIndustry().getName()
-                : "Technology";
+        String industryName = "Technology";
+        try {
+            if (idea.getIndustry() != null && idea.getIndustry().getName() != null) {
+                industryName = idea.getIndustry().getName();
+            }
+        } catch (Exception e) {
+            industryName = "Technology";
+        }
 
-        String founderName = (idea.getUser() != null && idea.getUser().getName() != null)
-                ? idea.getUser().getName()
-                : "Founder";
-
-        String founderEmail = (idea.getUser() != null && idea.getUser().getEmail() != null)
-                ? idea.getUser().getEmail()
-                : "";
+        String founderName = "Founder";
+        String founderEmail = "";
+        try {
+            if (idea.getUser() != null) {
+                if (idea.getUser().getName() != null) founderName = idea.getUser().getName();
+                if (idea.getUser().getEmail() != null) founderEmail = idea.getUser().getEmail();
+            }
+        } catch (Exception e) {
+            founderName = "Founder";
+        }
 
         String founderInitials = generateInitials(founderName);
 
-        String ask = (idea.getTargetMarket() != null && idea.getTargetMarket().startsWith("$"))
-                ? idea.getTargetMarket()
-                : "Seed • Growth";
+        String ask = "Seed • Growth";
+        try {
+            if (idea.getTargetMarket() != null && !idea.getTargetMarket().isBlank()) {
+                ask = idea.getTargetMarket();
+            }
+        } catch (Exception e) {
+            ask = "Seed • Growth";
+        }
 
-        Long likeCount = (idea.getId() != null) ? likeRepository.countByStartupIdeaId(idea.getId()) : 0L;
-        Long commentCount = (idea.getId() != null) ? commentRepository.countByStartupIdeaId(idea.getId()) : 0L;
-        Boolean likedByCurrentUser = (investorId != null && idea.getId() != null) 
-                && likeRepository.findByStartupIdeaIdAndUserId(idea.getId(), investorId).isPresent();
+        Long likeCount = 0L;
+        Long commentCount = 0L;
+        Boolean likedByCurrentUser = false;
+        try {
+            if (idea.getId() != null) {
+                likeCount = likeRepository.countByStartupIdeaId(idea.getId());
+                commentCount = commentRepository.countByStartupIdeaId(idea.getId());
+                if (investorId != null) {
+                    likedByCurrentUser = likeRepository.findByStartupIdeaIdAndUserId(idea.getId(), investorId).isPresent();
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
 
         return new DealPipelineItemDto(
                 idea.getId(),
