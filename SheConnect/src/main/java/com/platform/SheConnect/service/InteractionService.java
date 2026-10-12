@@ -2,7 +2,7 @@ package com.platform.SheConnect.service;
 
 import java.util.List;
 
-import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
+import com.platform.SheConnect.entity.User;
 import org.springframework.stereotype.Service;
 
 import com.platform.SheConnect.entity.Comment;

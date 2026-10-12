@@ -58,10 +58,10 @@ public class StartUpIdeaService {
                 if (isBlank(needName)) {
                     continue;
                 }
-                EntrepreneurNeed need = entrepreneurNeedRepository.findByName(needName.trim())
-                        .orElseThrow(() -> new ResourceNotFoundException(
-            "enterprenuer need not found with id: " + needName
-        )); 
+                String normalizedNeed = needName.trim().toUpperCase();
+                EntrepreneurNeed need = entrepreneurNeedRepository.findByName(normalizedNeed)
+                        .or(() -> entrepreneurNeedRepository.findByName(needName.trim()))
+                        .orElseGet(() -> entrepreneurNeedRepository.save(new EntrepreneurNeed(null, normalizedNeed))); 
                 lookingFor.add(need);
             }
         }

@@ -11,6 +11,7 @@ import org.springframework.security.web.session.RequestedUrlRedirectInvalidSessi
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -172,10 +173,18 @@ public class EntrepreneurApiController {
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        User fullUser = userRepository.findById(user.getId()).orElse(user);
-        long ideaCount = dashboardService.getIdeaCount(user.getId());
-        int totalLikes = dashboardService.getTotalLikes(user.getId());
-        long totalComments = dashboardService.getTotalComments(user.getId());
+        User resolved = null;
+        if (user.getId() != null) {
+            resolved = userRepository.findById(user.getId()).orElse(null);
+        }
+        if (resolved == null && user.getEmail() != null) {
+            resolved = userRepository.findByEmail(user.getEmail()).orElse(null);
+        }
+        final User fullUser = (resolved != null) ? resolved : user;
+
+        long ideaCount = fullUser.getId() != null ? dashboardService.getIdeaCount(fullUser.getId()) : 0;
+        int totalLikes = fullUser.getId() != null ? dashboardService.getTotalLikes(fullUser.getId()) : 0;
+        long totalComments = fullUser.getId() != null ? dashboardService.getTotalComments(fullUser.getId()) : 0;
         List<StartUpIdea> userIdeas = startUpIdeaService.MyIdeas(fullUser);
 
         List<StartUpIdeaResponse> ideaResponses = userIdeas.stream().map(i -> new StartUpIdeaResponse(
@@ -198,8 +207,8 @@ public class EntrepreneurApiController {
         profile.put("name", fullUser.getName());
         profile.put("email", fullUser.getEmail());
         profile.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "ENTREPRENEUR");
-        profile.put("bio", fullUser.getBio());
-        profile.put("title", fullUser.getTitle());
+        profile.put("bio", fullUser.getBio() != null ? fullUser.getBio() : "");
+        profile.put("title", fullUser.getTitle() != null ? fullUser.getTitle() : "");
         profile.put("ideaCount", ideaCount);
         profile.put("totalLikes", totalLikes);
         profile.put("totalComments", totalComments);
@@ -208,19 +217,28 @@ public class EntrepreneurApiController {
         return ResponseEntity.ok(profile);
     }
 
-    @org.springframework.web.bind.annotation.PutMapping("/profile")
+    @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(Authentication authentication, @RequestBody java.util.Map<String, String> updates) {
         User user = (User) authentication.getPrincipal();
-        User fullUser = userRepository.findById(user.getId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User fullUser = null;
+        if (user.getId() != null) {
+            fullUser = userRepository.findById(user.getId()).orElse(null);
+        }
+        if (fullUser == null && user.getEmail() != null) {
+            fullUser = userRepository.findByEmail(user.getEmail()).orElse(null);
+        }
+        if (fullUser == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
 
-        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").isBlank()) {
+        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").trim().isBlank()) {
             fullUser.setName(updates.get("name").trim());
         }
         if (updates.containsKey("bio")) {
-            fullUser.setBio(updates.get("bio"));
+            fullUser.setBio(updates.get("bio") != null ? updates.get("bio").trim() : "");
         }
         if (updates.containsKey("title")) {
-            fullUser.setTitle(updates.get("title"));
+            fullUser.setTitle(updates.get("title") != null ? updates.get("title").trim() : "");
         }
 
         userRepository.save(fullUser);
@@ -230,8 +248,8 @@ public class EntrepreneurApiController {
         resp.put("name", fullUser.getName());
         resp.put("email", fullUser.getEmail());
         resp.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "ENTREPRENEUR");
-        resp.put("bio", fullUser.getBio());
-        resp.put("title", fullUser.getTitle());
+        resp.put("bio", fullUser.getBio() != null ? fullUser.getBio() : "");
+        resp.put("title", fullUser.getTitle() != null ? fullUser.getTitle() : "");
         return ResponseEntity.ok(resp);
     }
 }

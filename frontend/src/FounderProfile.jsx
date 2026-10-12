@@ -28,6 +28,8 @@ function FounderProfile() {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalError, setModalError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -122,12 +124,36 @@ function FounderProfile() {
     }
   };
 
+  const handleOpenEditModal = () => {
+    setEditForm({
+      name: profile?.name || '',
+      title: profile?.title || '',
+      bio: profile?.bio || ''
+    });
+    setModalError(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setModalError(null);
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setModalError("You are not logged in. Please log in again.");
+      return;
+    }
+
+    if (!editForm.name.trim()) {
+      setModalError("Full name is required.");
+      return;
+    }
 
     setIsSaving(true);
+    setModalError(null);
     try {
       const res = await fetch('/api/entrepreneur/profile', {
         method: 'PUT',
@@ -135,11 +161,22 @@ function FounderProfile() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          title: editForm.title.trim(),
+          bio: editForm.bio.trim()
+        })
       });
 
       if (!res.ok) {
-        throw new Error("Failed to save profile changes.");
+        let msg = "Failed to save profile changes.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.message) {
+            msg = errData.message;
+          }
+        } catch (_) {}
+        throw new Error(msg);
       }
 
       const updated = await res.json();
@@ -155,16 +192,25 @@ function FounderProfile() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          localStorage.setItem('user', JSON.stringify({ ...parsed, name: updated.name }));
+          localStorage.setItem('user', JSON.stringify({ 
+            ...parsed, 
+            name: updated.name,
+            title: updated.title,
+            bio: updated.bio
+          }));
         } catch (e) {
           // Ignore
         }
       }
 
       setIsEditModalOpen(false);
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 4000);
     } catch (err) {
       console.error("Error updating profile:", err);
-      alert("Failed to save profile changes. Please ensure the backend is running.");
+      setModalError(err.message || "Failed to save profile changes. Please ensure the backend is running.");
     } finally {
       setIsSaving(false);
     }
@@ -205,6 +251,13 @@ function FounderProfile() {
             <span>Back to Dashboard</span>
           </Link>
         </div>
+
+        {saveSuccess && (
+          <div className="profile-success-banner animate-fade-in-up">
+            <CheckCircle size={20} className="flex-shrink-0" />
+            <span>Profile updated successfully!</span>
+          </div>
+        )}
 
         {error && (
           <div className="dashboard-error-alert animate-fade-in-up">
@@ -249,7 +302,7 @@ function FounderProfile() {
                   <>
                     <button 
                       className="btn-profile-primary"
-                      onClick={() => setIsEditModalOpen(true)}
+                      onClick={handleOpenEditModal}
                     >
                       <Settings size={18} /> Edit Profile
                     </button>
@@ -317,7 +370,7 @@ function FounderProfile() {
                   About Me
                 </h2>
                 <button 
-                  onClick={() => setIsEditModalOpen(true)}
+                  onClick={handleOpenEditModal}
                   style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}
                 >
                   Edit Bio
@@ -456,7 +509,8 @@ function FounderProfile() {
               <h3>Edit Founder Profile</h3>
               <button 
                 className="modal-close-btn"
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={handleCloseEditModal}
+                aria-label="Close modal"
               >
                 <X size={20} />
               </button>
@@ -464,6 +518,13 @@ function FounderProfile() {
 
             <form onSubmit={handleSaveProfile}>
               <div className="modal-body">
+                {modalError && (
+                  <div className="modal-error-alert animate-fade-in">
+                    <AlertCircle size={18} className="flex-shrink-0" />
+                    <span>{modalError}</span>
+                  </div>
+                )}
+
                 <div className="modal-group">
                   <label htmlFor="edit-name">Full Name</label>
                   <input 
@@ -472,6 +533,7 @@ function FounderProfile() {
                     className="modal-input"
                     value={editForm.name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. Jane Doe"
                     required
                   />
                 </div>
@@ -509,7 +571,8 @@ function FounderProfile() {
                 <button 
                   type="button" 
                   className="btn-profile-outline"
-                  onClick={() => setIsEditModalOpen(false)}
+                  onClick={handleCloseEditModal}
+                  disabled={isSaving}
                 >
                   Cancel
                 </button>

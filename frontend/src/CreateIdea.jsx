@@ -110,7 +110,13 @@ function CreateIdea() {
 
       if (!response.ok) {
         let msg = "Failed to create startup idea.";
-        if (data && data.message) msg = data.message;
+        if (response.status === 502) {
+          msg = "Backend server (Spring Boot on port 8080) is not running or unreachable. Please start your Spring Boot application.";
+        } else if (response.status === 401 || response.status === 403) {
+          msg = "Your login session has expired. Please log in again.";
+        } else if (data && data.message) {
+          msg = data.message;
+        }
         setErrorMessage(msg);
         setIsSubmitting(false);
         return;

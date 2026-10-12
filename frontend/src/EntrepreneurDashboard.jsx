@@ -19,7 +19,10 @@ import {
   LogOut,
   Loader2,
   AlertCircle,
-  Clock
+  Clock,
+  X,
+  Send,
+  User
 } from 'lucide-react';
 import './EntrepreneurDashboard.css';
 
@@ -30,6 +33,13 @@ function EntrepreneurDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [myIdeas, setMyIdeas] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeIdeaModal, setActiveIdeaModal] = useState(null);
+  const [modalComments, setModalComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isPostingComment, setIsPostingComment] = useState(false);
+  const [commentError, setCommentError] = useState(null);
+  const [isLiking, setIsLiking] = useState(false);
 
   // Load user from localStorage & fetch backend data
   useEffect(() => {
@@ -107,6 +117,180 @@ function EntrepreneurDashboard() {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const handleToggleLike = async (ideaId) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // Optimistic UI update
+    setMyIdeas(prev => prev.map(item => {
+      if (item.id === ideaId) {
+        const currentlyLiked = !!item.likedByCurrentUser;
+        const currentCount = item.likeCount || 0;
+        return {
+          ...item,
+          likedByCurrentUser: !currentlyLiked,
+          likeCount: currentlyLiked ? Math.max(0, currentCount - 1) : currentCount + 1
+        };
+      }
+      return item;
+    }));
+
+    if (activeIdeaModal && activeIdeaModal.id === ideaId) {
+      setActiveIdeaModal(prev => {
+        const currentlyLiked = !!prev.likedByCurrentUser;
+        const currentCount = prev.likeCount || 0;
+        return {
+          ...prev,
+          likedByCurrentUser: !currentlyLiked,
+          likeCount: currentlyLiked ? Math.max(0, currentCount - 1) : currentCount + 1
+        };
+      });
+    }
+
+    try {
+      const res = await fetch(`/api/interactions/startup-ideas/${ideaId}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMyIdeas(prev => prev.map(item => {
+          if (item.id === ideaId) {
+            return {
+              ...item,
+              likeCount: data.likeCount,
+              likedByCurrentUser: data.likedByCurrentUser
+            };
+          }
+          return item;
+        }));
+
+        if (activeIdeaModal && activeIdeaModal.id === ideaId) {
+          setActiveIdeaModal(prev => ({
+            ...prev,
+            likeCount: data.likeCount,
+            likedByCurrentUser: data.likedByCurrentUser
+          }));
+        }
+
+        // Update dashboard total likes
+        setDashboardData(prev => prev ? {
+          ...prev,
+          totalLikes: Math.max(0, (prev.totalLikes || 0) + (data.likedByCurrentUser ? 1 : -1))
+        } : prev);
+      }
+    } catch (err) {
+      console.error("Error toggling like:", err);
+    }
+  };
+
+  const handleOpenDiscussion = async (idea) => {
+    setActiveIdeaModal(idea);
+    setNewCommentText('');
+    setCommentError(null);
+    setLoadingComments(true);
+
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`/api/interactions/startup-ideas/${idea.id}/comments`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setModalComments(Array.isArray(data) ? data : []);
+      } else {
+        setModalComments(Array.isArray(idea.comment) ? idea.comment : []);
+      }
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+      setModalComments(Array.isArray(idea.comment) ? idea.comment : []);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleCloseDiscussion = () => {
+    setActiveIdeaModal(null);
+    setModalComments([]);
+    setNewCommentText('');
+    setCommentError(null);
+  };
+
+  const handlePostComment = async (e) => {
+    e.preventDefault();
+    if (!newCommentText.trim() || !activeIdeaModal) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setCommentError("Please log in to post a comment.");
+      return;
+    }
+
+    setIsPostingComment(true);
+    setCommentError(null);
+    try {
+      const res = await fetch(`/api/interactions/startup-ideas/${activeIdeaModal.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: newCommentText.trim() })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Failed to post comment.");
+      }
+
+      const createdComment = await res.json();
+      const formattedComment = {
+        id: createdComment.id || createdComment.commentId || Date.now(),
+        content: createdComment.content || newCommentText.trim(),
+        authorName: createdComment.authorName || currentUser?.name || 'You',
+        authorRole: createdComment.authorRole || getRoleDisplay(currentUser?.role) || 'ENTREPRENEUR',
+        createdAt: createdComment.createdAt || new Date().toISOString()
+      };
+
+      setModalComments(prev => [formattedComment, ...prev]);
+      setNewCommentText('');
+
+      // Update comment count on idea
+      setMyIdeas(prev => prev.map(item => {
+        if (item.id === activeIdeaModal.id) {
+          const currentCount = item.commentCount || (item.comment ? item.comment.length : 0);
+          return {
+            ...item,
+            commentCount: currentCount + 1,
+            comment: [formattedComment, ...(item.comment || [])]
+          };
+        }
+        return item;
+      }));
+
+      // Update active modal idea commentCount
+      setActiveIdeaModal(prev => ({
+        ...prev,
+        commentCount: (prev.commentCount || 0) + 1
+      }));
+
+      // Update total comments in dashboard
+      setDashboardData(prev => prev ? {
+        ...prev,
+        totalComments: (prev.totalComments || 0) + 1
+      } : prev);
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      setCommentError(err.message || "Failed to post comment.");
+    } finally {
+      setIsPostingComment(false);
+    }
   };
 
   // Safe display helpers to prevent rendering raw object entities as React children
@@ -391,19 +575,37 @@ function EntrepreneurDashboard() {
                             </span>
                             
                             <div className="idea-metrics">
-                              <div className="metric-item" title="Total Likes">
-                                <Heart size={14} /> {idea.likeCount || 0}
-                              </div>
-                              <div className="metric-item" title="Comments">
-                                <MessageSquare size={14} /> {idea.commentCount || (idea.comment ? idea.comment.length : 0)}
-                              </div>
+                              <button 
+                                className={`metric-btn ${idea.likedByCurrentUser ? 'liked' : ''}`}
+                                onClick={() => handleToggleLike(idea.id)}
+                                title={idea.likedByCurrentUser ? "Unlike idea" : "Like idea"}
+                              >
+                                <Heart size={14} className={idea.likedByCurrentUser ? 'heart-filled' : ''} />
+                                <span>{idea.likeCount || 0}</span>
+                              </button>
+
+                              <button 
+                                className="metric-btn"
+                                onClick={() => handleOpenDiscussion(idea)}
+                                title="View discussions & comments"
+                              >
+                                <MessageSquare size={14} />
+                                <span>{idea.commentCount || (idea.comment ? idea.comment.length : 0)}</span>
+                              </button>
+
                               <div className="metric-item" title="Created Date">
                                 <Clock size={14} /> {idea.createdAt ? new Date(idea.createdAt).toLocaleDateString() : 'Recent'}
                               </div>
                             </div>
                             
                             <div className="idea-actions">
-                              <button className="action-btn" title="Idea Details"><Edit3 size={16} /></button>
+                              <button 
+                                className="action-btn" 
+                                title="View Discussions & Details"
+                                onClick={() => handleOpenDiscussion(idea)}
+                              >
+                                <MessageSquare size={16} />
+                              </button>
                               <button className="action-btn" title="More Options"><MoreHorizontal size={16} /></button>
                             </div>
                           </div>
@@ -460,6 +662,131 @@ function EntrepreneurDashboard() {
 
         </div>
       </main>
+
+      {/* Discussion & Comments Modal */}
+      {activeIdeaModal && (
+        <div className="modal-backdrop animate-fade-in" onClick={handleCloseDiscussion}>
+          <div className="modal-card discussion-modal animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-info">
+                <h3>{activeIdeaModal.title}</h3>
+                <span className="industry-tag">{getIndustryDisplay(activeIdeaModal.industry)}</span>
+              </div>
+              <button className="modal-close-btn" onClick={handleCloseDiscussion} aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body discussion-body">
+              {/* Quick summary strip */}
+              <div className="discussion-meta-strip">
+                <div className="discussion-creator">
+                  <User size={16} />
+                  <span>Founder: <strong>{activeIdeaModal.user?.name || activeIdeaModal.ideaAdmin?.name || 'Entrepreneur'}</strong></span>
+                </div>
+
+                <button 
+                  className={`like-toggle-btn ${activeIdeaModal.likedByCurrentUser ? 'active' : ''}`}
+                  onClick={() => handleToggleLike(activeIdeaModal.id)}
+                >
+                  <Heart size={16} className={activeIdeaModal.likedByCurrentUser ? 'heart-filled' : ''} />
+                  <span>{activeIdeaModal.likeCount || 0} {activeIdeaModal.likeCount === 1 ? 'Like' : 'Likes'}</span>
+                </button>
+              </div>
+
+              {/* Problem & Solution if present */}
+              {activeIdeaModal.problem && (
+                <div className="idea-summary-box">
+                  <p><strong>Problem:</strong> {activeIdeaModal.problem}</p>
+                  {activeIdeaModal.solution && <p><strong>Solution:</strong> {activeIdeaModal.solution}</p>}
+                </div>
+              )}
+
+              {/* Comments Section */}
+              <div className="comments-section">
+                <h4>Discussion & Feedback ({modalComments.length})</h4>
+                
+                {loadingComments ? (
+                  <div className="comments-loading">
+                    <Loader2 size={24} className="animate-spin" color="#2563EB" />
+                    <span>Loading discussion...</span>
+                  </div>
+                ) : modalComments.length === 0 ? (
+                  <div className="no-comments-box">
+                    <MessageSquare size={28} color="#94A3B8" />
+                    <p>No feedback or comments yet. Be the first to share your thoughts!</p>
+                  </div>
+                ) : (
+                  <div className="comments-list">
+                    {modalComments.map((c, idx) => (
+                      <div key={c.id || c.commentId || idx} className="comment-card">
+                        <div className="comment-header">
+                          <div className="comment-author">
+                            <div className="comment-avatar">
+                              {getInitials(c.authorName || c.userName || (typeof c.user === 'object' ? c.user?.name : c.user) || 'User')}
+                            </div>
+                            <div className="comment-author-meta">
+                              <span className="author-name">
+                                {c.authorName || c.userName || (typeof c.user === 'object' ? c.user?.name : c.user) || 'Platform Member'}
+                              </span>
+                              {(c.authorRole || c.userRole || (typeof c.user === 'object' && c.user?.role?.name)) && (
+                                <span className="author-role-badge">
+                                  {c.authorRole || c.userRole || (typeof c.user === 'object' && c.user?.role?.name)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="comment-date">
+                            {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Recently'}
+                          </span>
+                        </div>
+                        <p className="comment-content">{c.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* New comment input form */}
+                <form onSubmit={handlePostComment} className="comment-form">
+                  {commentError && (
+                    <div className="modal-error-alert" style={{ marginBottom: '10px' }}>
+                      <AlertCircle size={16} />
+                      <span>{commentError}</span>
+                    </div>
+                  )}
+                  <div className="comment-input-row">
+                    <textarea 
+                      className="modal-textarea comment-textarea"
+                      placeholder="Share your thoughts, ask a question, or provide advisor/investor feedback..."
+                      value={newCommentText}
+                      onChange={(e) => {
+                        setNewCommentText(e.target.value);
+                        if (commentError) setCommentError(null);
+                      }}
+                      rows={2}
+                      maxLength={1000}
+                      required
+                    />
+                    <button 
+                      type="submit" 
+                      className="btn-primary-blue post-comment-btn"
+                      disabled={isPostingComment || !newCommentText.trim()}
+                    >
+                      {isPostingComment ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <>
+                          <Send size={16} /> Post
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
