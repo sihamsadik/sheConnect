@@ -35,6 +35,23 @@ public class User {
     private String bio;
 
     private String title;
+    private String location;
+    private String checkSize;
+
+    @Column(length = 2000)
+    private String investmentThesis;
+
+    @Column(length = 1000)
+    private String focusIndustries;
+
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = java.time.LocalDateTime.now();
+        }
+    }
 
     public Long getId() { return Id; }
     public void setId(Long id) { this.Id = id; }
@@ -56,4 +73,19 @@ public class User {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getCheckSize() { return checkSize; }
+    public void setCheckSize(String checkSize) { this.checkSize = checkSize; }
+
+    public String getInvestmentThesis() { return investmentThesis; }
+    public void setInvestmentThesis(String investmentThesis) { this.investmentThesis = investmentThesis; }
+
+    public String getFocusIndustries() { return focusIndustries; }
+    public void setFocusIndustries(String focusIndustries) { this.focusIndustries = focusIndustries; }
+
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

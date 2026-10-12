@@ -15,4 +15,6 @@ public interface InvestorInterestRepository extends JpaRepository<InvestorIntere
     long countByInvestorId(Long investorId);
     long countByInvestorIdAndStage(Long investorId, String stage);
     List<InvestorInterested> findAllByStartUpIdeaId(Long startUpIdeaId);//for entrepreneur feature
+    void deleteByInvestorId(Long investorId);
+    void deleteByStartUpIdeaId(Long startUpIdeaId);
 }
