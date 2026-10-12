@@ -131,4 +131,98 @@ public class InvestorController {
         resp.put("interested", interested);
         return ResponseEntity.ok(resp);
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(Authentication authentication) {
+        User user = resolveUser(authentication);
+        if (user == null || user.getId() == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        User fullUser = userRepository.findById(user.getId()).orElse(user);
+
+        long interestedCount = investorDashboardService.getInvestorInterestCount(fullUser.getId());
+        InvestorPipelineResponse pipeline = investorDashboardService.getInvestorPipeline(fullUser.getId());
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", fullUser.getId());
+        resp.put("name", fullUser.getName() != null ? fullUser.getName() : "Investor");
+        resp.put("email", fullUser.getEmail());
+        resp.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "INVESTOR");
+        resp.put("title", fullUser.getTitle() != null ? fullUser.getTitle() : "");
+        resp.put("location", fullUser.getLocation() != null ? fullUser.getLocation() : "");
+        resp.put("bio", fullUser.getBio() != null ? fullUser.getBio() : "");
+        resp.put("checkSize", fullUser.getCheckSize() != null ? fullUser.getCheckSize() : "");
+        resp.put("investmentThesis", fullUser.getInvestmentThesis() != null ? fullUser.getInvestmentThesis() : "");
+        resp.put("focusIndustries", fullUser.getFocusIndustries() != null ? fullUser.getFocusIndustries() : "");
+        resp.put("totalInvestments", interestedCount);
+        resp.put("inDiligence", pipeline != null ? pipeline.getInActiveDiligence() : 0L);
+        resp.put("partnerMeetings", pipeline != null ? pipeline.getPartnerMeetings() : 0L);
+        resp.put("termSheets", pipeline != null ? pipeline.getTermSheetCount() : 0L);
+        resp.put("portfolioDeals", pipeline != null ? pipeline.getAllDeals() : List.of());
+
+        return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> updateProfile(
+            Authentication authentication,
+            @RequestBody Map<String, String> updates
+    ) {
+        User user = resolveUser(authentication);
+        if (user == null || user.getId() == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        User fullUser = userRepository.findById(user.getId()).orElse(user);
+
+        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").trim().isBlank()) {
+            fullUser.setName(updates.get("name").trim());
+        }
+        if (updates.containsKey("title")) {
+            fullUser.setTitle(updates.get("title") != null ? updates.get("title").trim() : "");
+        }
+        if (updates.containsKey("location")) {
+            fullUser.setLocation(updates.get("location") != null ? updates.get("location").trim() : "");
+        }
+        if (updates.containsKey("bio")) {
+            fullUser.setBio(updates.get("bio") != null ? updates.get("bio").trim() : "");
+        }
+        if (updates.containsKey("checkSize")) {
+            fullUser.setCheckSize(updates.get("checkSize") != null ? updates.get("checkSize").trim() : "");
+        }
+        if (updates.containsKey("investmentThesis")) {
+            fullUser.setInvestmentThesis(updates.get("investmentThesis") != null ? updates.get("investmentThesis").trim() : "");
+        }
+        if (updates.containsKey("focusIndustries")) {
+            fullUser.setFocusIndustries(updates.get("focusIndustries") != null ? updates.get("focusIndustries").trim() : "");
+        }
+
+        userRepository.save(fullUser);
+
+        return getProfile(authentication);
+    }
+
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<Map<String, Object>> getProfileById(@PathVariable Long id) {
+        User fullUser = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Investor not found"));
+        long interestedCount = investorDashboardService.getInvestorInterestCount(fullUser.getId());
+        InvestorPipelineResponse pipeline = investorDashboardService.getInvestorPipeline(fullUser.getId());
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", fullUser.getId());
+        resp.put("name", fullUser.getName() != null ? fullUser.getName() : "Investor");
+        resp.put("email", fullUser.getEmail());
+        resp.put("role", fullUser.getRole() != null ? fullUser.getRole().getName() : "INVESTOR");
+        resp.put("title", fullUser.getTitle() != null ? fullUser.getTitle() : "");
+        resp.put("location", fullUser.getLocation() != null ? fullUser.getLocation() : "");
+        resp.put("bio", fullUser.getBio() != null ? fullUser.getBio() : "");
+        resp.put("checkSize", fullUser.getCheckSize() != null ? fullUser.getCheckSize() : "");
+        resp.put("investmentThesis", fullUser.getInvestmentThesis() != null ? fullUser.getInvestmentThesis() : "");
+        resp.put("focusIndustries", fullUser.getFocusIndustries() != null ? fullUser.getFocusIndustries() : "");
+        resp.put("totalInvestments", interestedCount);
+        resp.put("inDiligence", pipeline != null ? pipeline.getInActiveDiligence() : 0L);
+        resp.put("partnerMeetings", pipeline != null ? pipeline.getPartnerMeetings() : 0L);
+        resp.put("termSheets", pipeline != null ? pipeline.getTermSheetCount() : 0L);
+        resp.put("portfolioDeals", pipeline != null ? pipeline.getAllDeals() : List.of());
+        return ResponseEntity.ok(resp);
+    }
 }
