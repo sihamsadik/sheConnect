@@ -472,3 +472,234 @@
     margin-top: 4px;
   }
 }
+
+/* --- Top Navigation Breadcrumb --- */
+.profile-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: -12px;
+}
+
+.btn-back-pipeline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748B;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 8px 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-back-pipeline:hover {
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.profile-top-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.top-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563EB;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.top-nav-link:hover {
+  text-decoration: underline;
+}
+
+/* --- Initials Avatar Circle --- */
+.investor-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
+  color: #FFFFFF;
+  font-size: 2.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+  border: 4px solid #FFFFFF;
+}
+
+/* --- Save Success Banner --- */
+.save-success-banner {
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* --- Portfolio Meta --- */
+.portfolio-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+  font-size: 0.8rem;
+}
+
+.portfolio-ask-tag {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.portfolio-founder-tag {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.empty-portfolio-box {
+  padding: 48px 20px;
+  text-align: center;
+  color: #64748B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-portfolio-box .empty-icon {
+  color: #94A3B8;
+}
+
+.empty-portfolio-box h4 {
+  font-size: 1.1rem;
+  color: #0F172A;
+}
+
+.btn-browse-startups {
+  display: inline-block;
+  margin-top: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.btn-browse-startups:hover {
+  background-color: #1D4ED8;
+}
+
+.experience-desc {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+/* --- Profile Edit Modal --- */
+.profile-edit-modal-card {
+  background-color: #FFFFFF;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.modal-error-alert {
+  background-color: #FEF2F2;
+  border-left: 4px solid #EF4444;
+  color: #991B1B;
+  padding: 10px 16px;
+  margin: 12px 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.modal-body-scroll {
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-modal-save {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-modal-save:hover {
+  background-color: #1D4ED8;
+}
+
+.profile-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  color: #64748B;
+  gap: 16px;
+}
+
+.text-muted-notice {
+  color: #94A3B8;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+

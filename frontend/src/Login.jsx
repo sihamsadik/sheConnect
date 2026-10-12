@@ -72,7 +72,9 @@ function Login() {
 
         // Navigate based on role
         const roleUpper = (data.role || '').toUpperCase();
-        if (roleUpper === 'INVESTOR') {
+        if (roleUpper === 'ADMIN') {
+          navigate('/admin');
+        } else if (roleUpper === 'INVESTOR') {
           navigate('/investor');
         } else if (roleUpper === 'ADVISOR') {
           navigate('/advisor');

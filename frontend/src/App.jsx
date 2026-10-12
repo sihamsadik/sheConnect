@@ -11,6 +11,7 @@ import InvestorProfile from './InvestorProfile';
 import AdvisorDashboard from './AdvisorDashboard';
 import Marketplace from './Marketplace';
 import AdvisorProfile from './AdvisorProfile';
+import AdminDashboard from './AdminDashboard';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/advisor" element={<AdvisorDashboard />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/advisor-profile" element={<AdvisorProfile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );
