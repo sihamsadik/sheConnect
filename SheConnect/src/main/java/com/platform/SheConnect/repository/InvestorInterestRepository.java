@@ -10,7 +10,9 @@ public interface InvestorInterestRepository extends JpaRepository<InvestorIntere
     Optional<InvestorInterested> findByInvestorIdAndStartUpIdeaId(Long investorId, Long startUpIdeaId);
     void deleteByInvestorIdAndStartUpIdeaId(Long investorId, Long startUpIdeaId);
     List<InvestorInterested> findAllByInvestorId(Long investorId);//use this as a short listed
-    long  countByStartUpIdeaId(Long startUpIdeaId);
+    List<InvestorInterested> findAllByInvestorIdAndStage(Long investorId, String stage);
+    long countByStartUpIdeaId(Long startUpIdeaId);
     long countByInvestorId(Long investorId);
+    long countByInvestorIdAndStage(Long investorId, String stage);
     List<InvestorInterested> findAllByStartUpIdeaId(Long startUpIdeaId);//for entrepreneur feature
 }
