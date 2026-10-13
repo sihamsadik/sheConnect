@@ -111,7 +111,7 @@ public class AdvisorService {
             dto.setDay(friendlyDay(m.getSessionScheduledAt(), now));
             dto.setTime(m.getSessionScheduledAt().format(TIME_FMT));
             dto.setFounder(m.getMentee().getName());
-            dto.setStartup(m.getMentee().getTitle() != null ? m.getMentee().getTitle() : "Startup");
+            dto.setStartup(startupName(m));
             dto.setAgenda(m.getSessionAgenda() != null ? m.getSessionAgenda() : "Advisory Session");
             result.add(dto);
         }
@@ -123,8 +123,8 @@ public class AdvisorService {
         for (AdvisorMentorship m : mentorships) {
             MentorshipDto dto = new MentorshipDto();
             dto.setId(m.getId());
-            dto.setStartup(m.getMentee().getTitle() != null ? m.getMentee().getTitle() : m.getMentee().getName());
-            dto.setLogo(buildInitials(m.getMentee().getName()));
+            dto.setStartup(startupName(m));
+            dto.setLogo(buildInitials(startupName(m)));
             dto.setFounder(m.getMentee().getName());
             dto.setStatus(m.getMentorshipType() != null ? m.getMentorshipType() : "Mentorship");
             dto.setStatusClass("active-equity");
@@ -139,7 +139,7 @@ public class AdvisorService {
         for (AdvisorMentorship m : mentorships) {
             PendingRequestDto dto = new PendingRequestDto();
             dto.setId(m.getId());
-            dto.setStartup(m.getMentee().getTitle() != null ? m.getMentee().getTitle() : m.getMentee().getName());
+            dto.setStartup(startupName(m));
             dto.setFounder(m.getMentee().getName());
             dto.setMessage(m.getRequestMessage() != null ? m.getRequestMessage() : "Requesting mentorship guidance.");
             result.add(dto);
@@ -172,6 +172,16 @@ public class AdvisorService {
         String[] parts = name.trim().split("\\s+");
         if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
         return (parts[0].charAt(0) + "" + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    private String startupName(AdvisorMentorship mentorship) {
+        if (mentorship.getStartupIdea() != null && mentorship.getStartupIdea().getTitle() != null) {
+            return mentorship.getStartupIdea().getTitle();
+        }
+        if (mentorship.getMentee().getTitle() != null) {
+            return mentorship.getMentee().getTitle();
+        }
+        return mentorship.getMentee().getName();
     }
 
     private String friendlyDay(LocalDateTime session, LocalDateTime now) {

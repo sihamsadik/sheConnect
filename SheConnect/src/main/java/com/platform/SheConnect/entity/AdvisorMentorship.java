@@ -21,6 +21,11 @@ public class AdvisorMentorship {
     @JoinColumn(name = "mentee_id", nullable = false)
     private User mentee;
 
+    /** Startup idea this mentorship is attached to */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "startup_idea_id")
+    private StartUpIdea startupIdea;
+
     /** PENDING | ACTIVE | DECLINED | COMPLETED */
     @Column(nullable = false)
     private String status = "PENDING";
@@ -67,6 +72,9 @@ public class AdvisorMentorship {
 
     public User getMentee() { return mentee; }
     public void setMentee(User mentee) { this.mentee = mentee; }
+
+    public StartUpIdea getStartupIdea() { return startupIdea; }
+    public void setStartupIdea(StartUpIdea startupIdea) { this.startupIdea = startupIdea; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

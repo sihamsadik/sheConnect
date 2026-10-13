@@ -1,6 +1,7 @@
 package com.platform.SheConnect.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +17,12 @@ public interface AdvisorMentorshipRepository extends JpaRepository<AdvisorMentor
 
     List<AdvisorMentorship> findByAdvisorId(Long advisorId);
 
+    Optional<AdvisorMentorship> findByAdvisorIdAndStartupIdeaId(Long advisorId, Long startupIdeaId);
+
     long countByAdvisorIdAndStatus(Long advisorId, String status);
 
-    /** Mentorships with a scheduled session in the future for this advisor */
-    @Query("SELECT m FROM AdvisorMentorship m WHERE m.advisor.id = :advisorId AND m.sessionScheduledAt IS NOT NULL ORDER BY m.sessionScheduledAt ASC")
+    /** Active mentorships with a scheduled session in the future for this advisor */
+    @Query("SELECT m FROM AdvisorMentorship m WHERE m.advisor.id = :advisorId AND m.status = 'ACTIVE' AND m.sessionScheduledAt IS NOT NULL AND m.sessionScheduledAt >= CURRENT_TIMESTAMP ORDER BY m.sessionScheduledAt ASC")
     List<AdvisorMentorship> findUpcomingSessionsByAdvisorId(@Param("advisorId") Long advisorId);
 
     /** Count distinct active mentees for an advisor */

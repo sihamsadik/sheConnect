@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.platform.SheConnect.dto.CommentRequestDto;
 import com.platform.SheConnect.dto.LikeResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
+import com.platform.SheConnect.entity.AdvisorMentorship;
 import com.platform.SheConnect.entity.Comment;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
@@ -129,6 +130,28 @@ public class InteractionController {
             interactionService.likeStartupIdea(id, userId);
             return ResponseEntity.ok(new LikeResponse(interactionService.countLikesByStartupIdeaId(id), true));
         }
+    }
+
+    @PostMapping("startup-ideas/{id}/mentorship-offer")
+    public ResponseEntity<Map<String, Object>> offerMentorship(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> request
+    ) {
+        Long userId = resolveUserId(authentication);
+        if (userId == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        String message = request != null ? request.get("message") : null;
+        AdvisorMentorship mentorship = interactionService.offerMentorship(id, userId, message);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", mentorship.getId());
+        resp.put("status", mentorship.getStatus());
+        resp.put("startupIdeaId", mentorship.getStartupIdea() != null ? mentorship.getStartupIdea().getId() : id);
+        resp.put("message", "Mentorship offer saved");
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
     @GetMapping("/ideas")

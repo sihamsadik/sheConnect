@@ -22,6 +22,8 @@ function Marketplace() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [mentorshipActionId, setMentorshipActionId] = useState(null);
+  const [mentorshipNotice, setMentorshipNotice] = useState(null);
 
   // Discussion / comment modal state
   const [activeIdeaModal, setActiveIdeaModal] = useState(null);
@@ -62,7 +64,8 @@ function Marketplace() {
             likeCount: idea.likeCount || 0,
             likedByCurrentUser: !!idea.likedByCurrentUser,
             commentCount: idea.commentCount || (idea.comment ? idea.comment.length : 0),
-            comments: idea.comment || []
+            comments: idea.comment || [],
+            mentorshipOffered: false
           }));
           setOpportunities(mapped);
           setLoading(false);
@@ -91,7 +94,8 @@ function Marketplace() {
         likeCount: 14,
         likedByCurrentUser: false,
         commentCount: 3,
-        comments: []
+        comments: [],
+        mentorshipOffered: false
       },
       {
         id: 102,
@@ -109,7 +113,8 @@ function Marketplace() {
         likeCount: 28,
         likedByCurrentUser: false,
         commentCount: 5,
-        comments: []
+        comments: [],
+        mentorshipOffered: false
       },
       {
         id: 103,
@@ -127,10 +132,51 @@ function Marketplace() {
         likeCount: 9,
         likedByCurrentUser: false,
         commentCount: 2,
-        comments: []
+        comments: [],
+        mentorshipOffered: false
       }
     ]);
     setLoading(false);
+  };
+
+  const handleOfferMentorship = async (opp) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMentorshipNotice({ type: 'error', text: 'Please log in as an advisor to offer mentorship.' });
+      return;
+    }
+
+    setMentorshipActionId(opp.id);
+    setMentorshipNotice(null);
+    try {
+      const res = await fetch(`/api/interactions/startup-ideas/${opp.id}/mentorship-offer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: `I would like to offer mentorship to ${opp.startup}.`
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Could not save mentorship offer.');
+      }
+
+      const data = await res.json();
+      setOpportunities(prev => prev.map(item => (
+        item.id === opp.id
+          ? { ...item, mentorshipOffered: true, mentorshipId: data.id }
+          : item
+      )));
+      setMentorshipNotice({ type: 'success', text: `Mentorship offer saved for ${opp.startup}. It now appears in your advisor dashboard.` });
+    } catch (err) {
+      setMentorshipNotice({ type: 'error', text: err.message || 'Could not save mentorship offer.' });
+    } finally {
+      setMentorshipActionId(null);
+    }
   };
 
   const handleToggleLike = async (ideaId) => {
@@ -368,6 +414,13 @@ function Marketplace() {
 
       {/* Opportunity Cards Grid */}
       <div className="marketplace-grid-container">
+        {mentorshipNotice && (
+          <div className={`marketplace-alert ${mentorshipNotice.type}`}>
+            {mentorshipNotice.type === 'error' && <AlertCircle size={18} />}
+            <span>{mentorshipNotice.text}</span>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748B' }}>
             <Loader2 size={32} className="animate-spin" color="#2563EB" style={{ margin: '0 auto 12px' }} />
@@ -432,12 +485,37 @@ function Marketplace() {
 
                   <button 
                     className="btn-offer-mentorship"
+                    disabled={mentorshipActionId === opp.id || opp.mentorshipOffered}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOfferMentorship(opp);
+                    }}
+                  >
+                    {mentorshipActionId === opp.id ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" /> Saving
+                      </>
+                    ) : opp.mentorshipOffered ? (
+                      <>
+                        <Bookmark size={18} /> Offered
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark size={18} /> Offer Mentorship
+                      </>
+                    )}
+                  </button>
+
+                  <button 
+                    className="btn-discussion"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenDiscussion(opp);
                     }}
+                    title="Open discussion"
                   >
-                    <MessageSquare size={18} /> Discussion ({opp.commentCount || 0})
+                    <MessageSquare size={18} />
+                    <span>{opp.commentCount || 0}</span>
                   </button>
                 </div>
 
