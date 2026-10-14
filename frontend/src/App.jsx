@@ -28,6 +28,7 @@ function App() {
         <Route path="/advisor" element={<AdvisorDashboard />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/advisor-profile" element={<AdvisorProfile />} />
+        <Route path="/advisor-profile/:id" element={<AdvisorProfile />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>

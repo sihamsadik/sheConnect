@@ -13,6 +13,9 @@ public class StartUpIdeaResponse {
     private Long id;
     private String title;
     private String industry;
+    private String description;
+    private String problem;
+    private String solution;
     private List<String> lookingFor;
     private LoginResponse ideaAdmin;
     // add like COUNT and COMMENT  AND ALSO COMMENT COUNT
@@ -25,10 +28,13 @@ public class StartUpIdeaResponse {
     private LocalDateTime updatedAt;
 
 
-    public StartUpIdeaResponse(Long id, User ideaAdmin, String title, String industry, List<String> lookingFor, LocalDateTime updatedAt, LocalDateTime createdAt, User user, Long likeCount, Long commentCount, Boolean likedByCurrentUser, List<Comment> comment) {
+    public StartUpIdeaResponse(Long id, User ideaAdmin, String title, String industry, String description, String problem, String solution, List<String> lookingFor, LocalDateTime updatedAt, LocalDateTime createdAt, User user, Long likeCount, Long commentCount, Boolean likedByCurrentUser, List<Comment> comment) {
         this.id = id;
         this.title = title;
         this.industry = industry;
+        this.description = description;
+        this.problem = problem;
+        this.solution = solution;
         this.lookingFor = lookingFor;
         this.ideaAdmin = mapToLoginResponse(ideaAdmin);
         this.updatedAt = updatedAt;
@@ -64,6 +70,9 @@ public class StartUpIdeaResponse {
         return comment;
     }
 
+    public String getDescription() { return description; }
+    public String getProblem() { return problem; }
+    public String getSolution() { return solution; }
     public Long getId() {
         return id;
     }

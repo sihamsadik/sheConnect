@@ -159,98 +159,64 @@ function AdvisorDashboard() {
       const res = await fetch('/api/interactions/ideas', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      if (res.ok) {
-        const raw = await res.json();
-        if (Array.isArray(raw) && raw.length > 0) {
-          const mapped = raw.map(idea => {
-            const lookingFor = Array.isArray(idea.lookingFor) ? idea.lookingFor : [];
-            const needsAdvisor = lookingFor.some(
-              tag => tag.toLowerCase().includes('advis') || tag.toLowerCase().includes('mentor')
-            );
-            return {
-              id: idea.id,
-              title: idea.title || 'Untitled Idea',
-              logo: (idea.title || 'SC').substring(0, 2).toUpperCase(),
-              industry: typeof idea.industry === 'object' ? idea.industry?.name : (idea.industry || 'Tech'),
-              summary: idea.description || idea.solution || 'No description provided.',
-              problem: idea.problem || '',
-              lookingFor,
-              needsAdvisor,
-              founder: idea.user?.name || idea.ideaAdmin?.name || 'Verified Founder',
-              founderInitials: ((idea.user?.name || idea.ideaAdmin?.name || 'VF').split(' ').map(n => n[0]).join('')).substring(0, 2).toUpperCase(),
-              likeCount: idea.likeCount || 0,
-              likedByCurrentUser: !!idea.likedByCurrentUser,
-              commentCount: idea.commentCount || 0,
-              mentorshipOffered: false
-            };
-          });
-          setIdeas(mapped);
-          setIdeasLoading(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn('Could not load ideas from backend, using fallback:', err);
-    }
 
-    // Fallback sample ideas
-    setIdeas([
-      {
-        id: 201, title: 'GreenPath Logistics', logo: 'GP', industry: 'B2B SaaS',
-        summary: 'Carbon-neutral supply chain optimization software for mid-market logistics companies.',
-        problem: 'Preparing for Seed round; need feedback on pitch deck and narrative.',
-        lookingFor: ['Fundraising Advisor', 'GTM Strategy'],
-        needsAdvisor: true,
-        founder: 'Amina Osei', founderInitials: 'AO',
-        likeCount: 12, likedByCurrentUser: false, commentCount: 4, mentorshipOffered: false
-      },
-      {
-        id: 202, title: 'MediTrack AI', logo: 'MT', industry: 'HealthTech',
-        summary: 'AI-powered patient monitoring dashboard for rural clinics in underserved regions.',
-        problem: 'Need technical architecture guidance before scaling to 50+ clinics.',
-        lookingFor: ['Technical Advisor', 'Healthcare Regulation'],
-        needsAdvisor: true,
-        founder: 'Fatima Al-Rashid', founderInitials: 'FA',
-        likeCount: 8, likedByCurrentUser: false, commentCount: 2, mentorshipOffered: false
-      },
-      {
-        id: 203, title: 'Nexus API', logo: 'NX', industry: 'Web3',
-        summary: 'Unified data aggregation layer for decentralized identity verification across blockchains.',
-        problem: 'Scaling our open-source developer community and DevRel strategy.',
-        lookingFor: ['Community Advisor'],
-        needsAdvisor: true,
-        founder: 'Marcus Reynolds', founderInitials: 'MR',
-        likeCount: 28, likedByCurrentUser: false, commentCount: 5, mentorshipOffered: false
-      },
-      {
-        id: 204, title: 'EduWave', logo: 'EW', industry: 'EdTech',
-        summary: 'Adaptive e-learning platform personalizing content using learning-style analytics.',
-        problem: 'Increasing user retention after first 30 days.',
-        lookingFor: ['Product Strategy', 'UX Research'],
-        needsAdvisor: false,
-        founder: 'Leila Nassar', founderInitials: 'LN',
-        likeCount: 19, likedByCurrentUser: false, commentCount: 7, mentorshipOffered: false
-      },
-      {
-        id: 205, title: 'Lumina Analytics', logo: 'LA', industry: 'FinTech',
-        summary: 'Predictive foot-traffic analytics for brick-and-mortar retail.',
-        problem: 'Lack a scalable outbound enterprise sales motion.',
-        lookingFor: ['Sales Strategy'],
-        needsAdvisor: false,
-        founder: 'Sarah Jenkins', founderInitials: 'SJ',
-        likeCount: 14, likedByCurrentUser: false, commentCount: 3, mentorshipOffered: false
-      },
-      {
-        id: 206, title: 'CropSense', logo: 'CS', industry: 'AgriTech',
-        summary: 'IoT soil-monitoring sensors delivering real-time crop health data to smallholder farmers.',
-        problem: 'Seeking distribution partnerships across East Africa.',
-        lookingFor: ['Business Development', 'Partnership'],
-        needsAdvisor: false,
-        founder: 'James Wanjiku', founderInitials: 'JW',
-        likeCount: 22, likedByCurrentUser: false, commentCount: 6, mentorshipOffered: false
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || `Server error: ${res.status}`);
       }
-    ]);
-    setIdeasLoading(false);
+
+      const raw = await res.json();
+
+      if (!Array.isArray(raw)) {
+        throw new Error('Unexpected response format from server.');
+      }
+
+      const mapped = raw.map(idea => {
+        const lookingFor = Array.isArray(idea.lookingFor) ? idea.lookingFor : [];
+        // Detect if this idea specifically needs an advisor/mentor
+        const needsAdvisor = lookingFor.some(
+          tag => tag.toLowerCase().includes('advis') || tag.toLowerCase().includes('mentor')
+        );
+
+        // Resolve founder name: user or ideaAdmin (both are LoginResponse objects from backend)
+        const founderName =
+          idea.user?.name ||
+          idea.ideaAdmin?.name ||
+          'Verified Founder';
+
+        const founderInitials = founderName
+          .split(' ')
+          .map(n => n[0] || '')
+          .join('')
+          .substring(0, 2)
+          .toUpperCase() || 'VF';
+
+        return {
+          id: idea.id,
+          title: idea.title || 'Untitled Idea',
+          logo: (idea.title || 'SC').substring(0, 2).toUpperCase(),
+          industry: idea.industry || 'General',
+          summary: idea.description || idea.solution || 'No description provided.',
+          problem: idea.problem || '',
+          solution: idea.solution || '',
+          lookingFor,
+          needsAdvisor,
+          founder: founderName,
+          founderInitials,
+          likeCount: idea.likeCount || 0,
+          likedByCurrentUser: !!idea.likedByCurrentUser,
+          commentCount: idea.commentCount || 0,
+          mentorshipOffered: false
+        };
+      });
+
+      setIdeas(mapped);
+    } catch (err) {
+      console.error('Failed to load startup ideas:', err);
+      setIdeasError(err.message || 'Could not load startup ideas. Please ensure the server is running.');
+    } finally {
+      setIdeasLoading(false);
+    }
   }, []);
 
   useEffect(() => {

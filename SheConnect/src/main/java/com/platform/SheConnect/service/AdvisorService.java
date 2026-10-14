@@ -13,6 +13,7 @@ import com.platform.SheConnect.dto.AdvisorDashboardResponse.ActivityDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.MentorshipDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.PendingRequestDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.SessionDto;
+import com.platform.SheConnect.dto.AdvisorProfileResponse;
 import com.platform.SheConnect.entity.AdvisorMentorship;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.repository.AdvisorMentorshipRepository;
@@ -67,6 +68,24 @@ public class AdvisorService {
         // ---- Recent activity (from recently-updated active mentorships) ----
         resp.setRecentActivity(buildActivityFeed(active));
 
+        return resp;
+    }
+
+    // -----------------------------------------------------------------------
+    // Profile
+    // -----------------------------------------------------------------------
+
+    public AdvisorProfileResponse getProfile(User advisor, User currentUser) {
+        AdvisorProfileResponse resp = new AdvisorProfileResponse();
+        resp.setId(advisor.getId());
+        resp.setName(advisor.getName());
+        resp.setTitle(advisor.getTitle() != null ? advisor.getTitle() : "Advisor");
+        resp.setLocation(advisor.getLocation());
+        resp.setBio(advisor.getBio());
+        resp.setFocusIndustries(advisor.getFocusIndustries());
+        resp.setInitials(buildInitials(advisor.getName()));
+        resp.setStartupsAdvised(mentorshipRepository.countActiveMenteesByAdvisorId(advisor.getId()));
+        resp.setOwner(currentUser != null && currentUser.getId().equals(advisor.getId()));
         return resp;
     }
 

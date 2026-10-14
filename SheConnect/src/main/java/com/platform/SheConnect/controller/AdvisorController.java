@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.platform.SheConnect.dto.AdvisorDashboardResponse;
+import com.platform.SheConnect.dto.AdvisorProfileResponse;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.UserRepository;
@@ -43,6 +44,33 @@ public class AdvisorController {
             return userRepository.findByEmail(str).orElse(null);
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------
+    // GET /api/advisor/profile/me
+    // ------------------------------------------------------------------
+
+    @GetMapping("/profile/me")
+    public ResponseEntity<AdvisorProfileResponse> getMyProfile(Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(advisorService.getProfile(advisor, advisor));
+    }
+
+    // ------------------------------------------------------------------
+    // GET /api/advisor/profile/{id}
+    // ------------------------------------------------------------------
+
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<AdvisorProfileResponse> getProfile(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User advisor = userRepository.findById(id).orElse(null);
+        if (advisor == null) return ResponseEntity.notFound().build();
+        User currentUser = resolveUser(authentication);
+        return ResponseEntity.ok(advisorService.getProfile(advisor, currentUser));
     }
 
     // ------------------------------------------------------------------
