@@ -6,8 +6,6 @@ import {
   X,
   Bookmark,
   MessageSquare,
-  Clock,
-  PieChart,
   Heart,
   Send,
   User,
@@ -24,6 +22,7 @@ function Marketplace() {
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [mentorshipActionId, setMentorshipActionId] = useState(null);
   const [mentorshipNotice, setMentorshipNotice] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
   // Discussion / comment modal state
   const [activeIdeaModal, setActiveIdeaModal] = useState(null);
@@ -39,104 +38,35 @@ function Marketplace() {
 
   const fetchMarketplaceIdeas = async () => {
     setLoading(true);
+    setFetchError(null);
     const token = localStorage.getItem('token');
     try {
       const res = await fetch('/api/interactions/ideas', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map(idea => ({
-            id: idea.id,
-            startup: idea.title,
-            logo: (idea.title || 'SC').substring(0, 2).toUpperCase(),
-            stage: 'Active',
-            industry: typeof idea.industry === 'object' ? idea.industry?.name : (idea.industry || 'Tech'),
-            expertise: idea.lookingFor && idea.lookingFor.length > 0 ? `Seeking ${idea.lookingFor.join(', ')}` : 'Seeking Mentorship',
-            summary: idea.description || idea.solution || 'Building high-impact technology.',
-            problem: idea.problem || 'Scaling product, refining go-to-market strategy, and securing partners.',
-            founder: idea.user?.name || idea.ideaAdmin?.name || 'Verified Founder',
-            founderInitials: ((idea.user?.name || idea.ideaAdmin?.name || 'VF').split(' ').map(n => n[0]).join('')).substring(0, 2).toUpperCase(),
-            commitment: 'Flexible',
-            compensation: 'Advisory / Network',
-            likeCount: idea.likeCount || 0,
-            likedByCurrentUser: !!idea.likedByCurrentUser,
-            commentCount: idea.commentCount || (idea.comment ? idea.comment.length : 0),
-            comments: idea.comment || [],
-            mentorshipOffered: false
-          }));
-          setOpportunities(mapped);
-          setLoading(false);
-          return;
-        }
-      }
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      const mapped = (Array.isArray(data) ? data : []).map(idea => ({
+        id: idea.id,
+        startup: idea.title,
+        logo: (idea.title || 'SC').substring(0, 2).toUpperCase(),
+        industry: typeof idea.industry === 'object' ? idea.industry?.name : (idea.industry || 'Tech'),
+        expertise: idea.lookingFor && idea.lookingFor.length > 0 ? `Seeking ${idea.lookingFor.join(', ')}` : 'Seeking Mentorship',
+        summary: idea.description || idea.solution || '',
+        problem: idea.problem || '',
+        founder: idea.user?.name || idea.ideaAdmin?.name || 'Verified Founder',
+        founderInitials: ((idea.user?.name || idea.ideaAdmin?.name || 'VF').split(' ').map(n => n[0]).join('')).substring(0, 2).toUpperCase(),
+        likeCount: idea.likeCount || 0,
+        likedByCurrentUser: !!idea.likedByCurrentUser,
+        commentCount: idea.commentCount || 0,
+        mentorshipOffered: false
+      }));
+      setOpportunities(mapped);
     } catch (err) {
-      console.warn("Could not load backend ideas, displaying defaults:", err);
+      setFetchError(err.message || 'Could not load startup ideas.');
+    } finally {
+      setLoading(false);
     }
-
-    // Default curated fallback opportunities
-    setOpportunities([
-      {
-        id: 101,
-        startup: 'Lumina Analytics',
-        logo: 'LA',
-        stage: 'Seed',
-        industry: 'FinTech',
-        expertise: 'Looking for GTM Advisor',
-        summary: 'We provide predictive foot-traffic analytics for brick-and-mortar retail.',
-        problem: 'We have strong organic traction but lack a scalable outbound enterprise sales motion.',
-        founder: 'Sarah Jenkins',
-        founderInitials: 'SJ',
-        commitment: '2 hrs / month',
-        compensation: 'Advisory Equity 0.5%',
-        likeCount: 14,
-        likedByCurrentUser: false,
-        commentCount: 3,
-        comments: [],
-        mentorshipOffered: false
-      },
-      {
-        id: 102,
-        startup: 'Nexus API',
-        logo: 'NX',
-        stage: 'Series A',
-        industry: 'Web3',
-        expertise: 'Looking for Technical Architecture',
-        summary: 'Unified data aggregation layer for decentralized identity verification.',
-        problem: 'Need guidance on scaling our open-source developer community and DevRel strategy.',
-        founder: 'Marcus Reynolds',
-        founderInitials: 'MR',
-        commitment: 'Ad-hoc / Hourly',
-        compensation: 'Retainer',
-        likeCount: 28,
-        likedByCurrentUser: false,
-        commentCount: 5,
-        comments: [],
-        mentorshipOffered: false
-      },
-      {
-        id: 103,
-        startup: 'EcoLogistics',
-        logo: 'EL',
-        stage: 'Pre-seed',
-        industry: 'B2B SaaS',
-        expertise: 'Looking for Fundraising Prep',
-        summary: 'Carbon-neutral supply chain optimization software for mid-market logistics.',
-        problem: 'Preparing for our Seed round in Q3; need feedback on narrative and pitch deck.',
-        founder: 'David Chen',
-        founderInitials: 'DC',
-        commitment: '1 hr / week',
-        compensation: 'Pro Bono (Introductory)',
-        likeCount: 9,
-        likedByCurrentUser: false,
-        commentCount: 2,
-        comments: [],
-        mentorshipOffered: false
-      }
-    ]);
-    setLoading(false);
   };
 
   const handleOfferMentorship = async (opp) => {
@@ -252,11 +182,11 @@ function Marketplace() {
         const data = await res.json();
         setModalComments(Array.isArray(data) ? data : []);
       } else {
-        setModalComments(opp.comments || []);
+        setModalComments([]);
       }
     } catch (err) {
       console.error("Error fetching comments:", err);
-      setModalComments(opp.comments || []);
+      setModalComments([]);
     } finally {
       setLoadingComments(false);
     }
@@ -426,6 +356,12 @@ function Marketplace() {
             <Loader2 size={32} className="animate-spin" color="#2563EB" style={{ margin: '0 auto 12px' }} />
             <p>Loading startup ventures...</p>
           </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748B' }}>
+            <AlertCircle size={32} color="#EF4444" style={{ margin: '0 auto 12px' }} />
+            <p style={{ color: '#EF4444', marginBottom: '12px' }}>{fetchError}</p>
+            <button className="btn-offer-mentorship" style={{ width: 'auto', padding: '0 24px' }} onClick={fetchMarketplaceIdeas}>Retry</button>
+          </div>
         ) : filteredOpportunities.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748B' }}>
             <p>No startup opportunities match your filter criteria.</p>
@@ -440,7 +376,7 @@ function Marketplace() {
                   <div className="startup-info">
                     <div className="startup-name-row">
                       <h3 className="startup-name">{opp.startup}</h3>
-                      <span className="stage-pill">{opp.industry || opp.stage}</span>
+                      <span className="stage-pill">{opp.industry}</span>
                     </div>
                   </div>
                 </div>
@@ -449,8 +385,7 @@ function Marketplace() {
                 
                 <p className="elevator-summary">
                   {opp.summary}
-                  <strong>Specific Challenge:</strong>
-                  {opp.problem}
+                  {opp.problem && <><strong>Specific Challenge:</strong>{opp.problem}</>}
                 </p>
 
                 <div className="founder-snippet">
@@ -459,15 +394,6 @@ function Marketplace() {
                     <p>{opp.founder}</p>
                     <span>Founder</span>
                   </div>
-                </div>
-
-                <div className="terms-row">
-                  <span className="commitment-badge">
-                    <Clock size={14} /> {opp.commitment}
-                  </span>
-                  <span className="commitment-badge">
-                    <PieChart size={14} /> {opp.compensation}
-                  </span>
                 </div>
 
                 <div className="card-actions">
