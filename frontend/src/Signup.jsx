@@ -17,12 +17,14 @@ function Signup() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
 
   const roles = [
@@ -83,6 +85,11 @@ function Signup() {
 
     if (!isStrongPassword(formData.password)) {
       setErrorMessage("Password must be at least 8 characters long, and include an uppercase letter, lowercase letter, number, and special character (e.g. Test1234!).");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage("Passwords do not match. Please try again.");
       return;
     }
 
@@ -251,8 +258,37 @@ function Signup() {
               </button>
             </div>
             <p className="field-hint">
-              Must be at least 8 chars with uppercase, lowercase, number & special char (!@#$).
+              Must be at least 8 chars with uppercase, lowercase, number &amp; special char (!@#$).
             </p>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="password-input-wrapper">
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                id="confirmPassword" 
+                name="confirmPassword"
+                placeholder="••••••••" 
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+              />
+              <button 
+                type="button" 
+                className="toggle-password" 
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label="Toggle confirm password visibility"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <p className="field-hint field-hint--error">Passwords do not match.</p>
+            )}
+            {formData.confirmPassword && formData.password === formData.confirmPassword && (
+              <p className="field-hint field-hint--success">Passwords match ✓</p>
+            )}
           </div>
 
           <button 
