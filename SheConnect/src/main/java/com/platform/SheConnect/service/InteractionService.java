@@ -98,7 +98,7 @@ public class InteractionService {
                     mentorship.setAdvisor(advisor);
                     mentorship.setMentee(idea.getUser());
                     mentorship.setStartupIdea(idea);
-                    mentorship.setStatus("ACTIVE");
+                    mentorship.setStatus("PENDING");
                     mentorship.setMentorshipType("Mentorship Offer");
                     mentorship.setRequestMessage(cleanMentorshipMessage(message, idea));
                     mentorship.setSprintGoal("Kickoff: review " + idea.getTitle() + " and agree on advisory goals.");

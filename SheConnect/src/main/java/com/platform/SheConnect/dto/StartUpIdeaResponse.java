@@ -22,6 +22,7 @@ public class StartUpIdeaResponse {
     private Long likeCount;
     private Long commentCount;
     private Boolean likedByCurrentUser;
+    private Boolean mentorshipOffered;
     private List<Comment> comment;
     private LoginResponse user;
     private LocalDateTime createdAt;
@@ -66,6 +67,8 @@ public class StartUpIdeaResponse {
     public Boolean getLikedByCurrentUser() {
         return likedByCurrentUser;
     }
+    public Boolean getMentorshipOffered() { return mentorshipOffered; }
+    public void setMentorshipOffered(Boolean mentorshipOffered) { this.mentorshipOffered = mentorshipOffered; }
     public List<Comment> getComment() {
         return comment;
     }

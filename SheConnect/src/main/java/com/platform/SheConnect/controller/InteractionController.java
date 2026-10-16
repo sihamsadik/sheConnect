@@ -26,6 +26,7 @@ import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.CommentRepository;
+import com.platform.SheConnect.repository.AdvisorMentorshipRepository;
 import com.platform.SheConnect.repository.LikeRepository;
 import com.platform.SheConnect.repository.StartUpIdeaRepository;
 import com.platform.SheConnect.repository.UserRepository;
@@ -42,19 +43,22 @@ public class InteractionController {
     private final CommentRepository commentRepository;
     private final StartUpIdeaRepository startUpIdeaRepository;
     private final LikeRepository likeRepository;
+    private final AdvisorMentorshipRepository advisorMentorshipRepository;
 
     public InteractionController(
             InteractionService interactionService,
             UserRepository userRepository,
             CommentRepository commentRepository,
             StartUpIdeaRepository startUpIdeaRepository,
-            LikeRepository likeRepository
+            LikeRepository likeRepository,
+            AdvisorMentorshipRepository advisorMentorshipRepository
     ) {
         this.interactionService = interactionService;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.startUpIdeaRepository = startUpIdeaRepository;
         this.likeRepository = likeRepository;
+        this.advisorMentorshipRepository = advisorMentorshipRepository;
     }
 
     private Long resolveUserId(Authentication authentication) {
@@ -165,7 +169,7 @@ public class InteractionController {
             Boolean likedByCurrentUser = currentUserId != null && likeRepository.findByStartupIdeaIdAndUserId(i.getId(), currentUserId).isPresent();
             List<Comment> comments = commentRepository.findByStartupIdeaId(i.getId());
 
-            return new StartUpIdeaResponse(
+            StartUpIdeaResponse ideaResponse = new StartUpIdeaResponse(
                     i.getId(),
                     i.getUser(),
                     i.getTitle(),
@@ -182,6 +186,9 @@ public class InteractionController {
                     likedByCurrentUser,
                     comments
             );
+            ideaResponse.setMentorshipOffered(currentUserId != null
+                    && advisorMentorshipRepository.existsByAdvisorIdAndStartupIdeaId(currentUserId, i.getId()));
+            return ideaResponse;
         }).toList();
 
         return ResponseEntity.ok(response);

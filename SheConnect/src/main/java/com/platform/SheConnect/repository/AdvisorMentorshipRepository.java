@@ -19,6 +19,8 @@ public interface AdvisorMentorshipRepository extends JpaRepository<AdvisorMentor
 
     Optional<AdvisorMentorship> findByAdvisorIdAndStartupIdeaId(Long advisorId, Long startupIdeaId);
 
+    boolean existsByAdvisorIdAndStartupIdeaId(Long advisorId, Long startupIdeaId);
+
     long countByAdvisorIdAndStatus(Long advisorId, String status);
 
     /** Active mentorships with a scheduled session in the future for this advisor */

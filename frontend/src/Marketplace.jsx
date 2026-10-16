@@ -59,7 +59,7 @@ function Marketplace() {
         likeCount: idea.likeCount || 0,
         likedByCurrentUser: !!idea.likedByCurrentUser,
         commentCount: idea.commentCount || 0,
-        mentorshipOffered: false
+        mentorshipOffered: !!idea.mentorshipOffered
       }));
       setOpportunities(mapped);
     } catch (err) {
