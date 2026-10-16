@@ -46,6 +46,13 @@ public class StartUpIdeaResponse {
         this.likedByCurrentUser = likedByCurrentUser;
         this.comment = comment;
     }
+
+    public StartUpIdeaResponse(Long id, User ideaAdmin, String title, String industry, List<String> lookingFor,
+            LocalDateTime updatedAt, LocalDateTime createdAt, User user, Long likeCount, Long commentCount,
+            Boolean likedByCurrentUser, List<Comment> comment) {
+        this(id, ideaAdmin, title, industry, null, null, null, lookingFor, updatedAt, createdAt, user,
+                likeCount, commentCount, likedByCurrentUser, comment);
+    }
     public LoginResponse mapToLoginResponse(User user) {
         if (user == null) {
             return null;
