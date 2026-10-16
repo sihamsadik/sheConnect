@@ -375,7 +375,10 @@ function AdvisorDashboard() {
         <nav className="nav-links-sidebar">
           <button
             className={`sidebar-link ${activeSection === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveSection('overview')}
+            onClick={() => {
+              setActiveSection('overview');
+              fetchDashboard();
+            }}
           >
             <div className="sidebar-link-content">
               <LayoutDashboard className="sidebar-icon" size={20} />

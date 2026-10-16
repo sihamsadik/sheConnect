@@ -350,7 +350,10 @@ function AdminDashboard() {
         <nav className="admin-nav">
           <button 
             className={`admin-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => {
+              setActiveTab('overview');
+              loadAdminData();
+            }}
           >
             <TrendingUp size={18} />
             <span>Overview & KPIs</span>

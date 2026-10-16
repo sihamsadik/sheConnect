@@ -453,7 +453,7 @@ function InvestorDashboard() {
         </div>
         
         <nav className="nav-links-sidebar">
-          <Link to="/investor" className="sidebar-link active">
+          <Link to="/investor" className="sidebar-link active" onClick={fetchPipeline}>
             <div className="sidebar-link-content">
               <LayoutDashboard className="sidebar-icon" size={20} />
               <span>Deal Pipeline</span>

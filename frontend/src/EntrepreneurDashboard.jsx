@@ -41,9 +41,56 @@ function EntrepreneurDashboard() {
   const [commentError, setCommentError] = useState(null);
   const [isLiking, setIsLiking] = useState(false);
 
+  const fetchData = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      setError('No authentication token found. Please log in first.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const [dashRes, ideasRes] = await Promise.all([
+        fetch('/api/entrepreneur/dashboard', {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch('/api/entrepreneur/my-ideas', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      if ([dashRes.status, ideasRes.status].some(status => status === 401 || status === 403)) {
+        setError('Your session has expired or you do not have permission. Please log in again.');
+        localStorage.removeItem('token');
+        return;
+      }
+
+      if (!dashRes.ok && !ideasRes.ok) {
+        throw new Error('Failed to fetch dashboard data from server.');
+      }
+
+      if (dashRes.ok) {
+        const dashData = await dashRes.json();
+        setDashboardData(dashData);
+        if (dashData.user) setCurrentUser(dashData.user);
+      }
+
+      if (ideasRes.ok) {
+        const ideasData = await ideasRes.json();
+        setMyIdeas(Array.isArray(ideasData) ? ideasData : []);
+      }
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+      setError('Could not reach backend API at http://localhost:8080. Please ensure Spring Boot is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load user from localStorage & fetch backend data
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
     if (storedUser) {
@@ -53,61 +100,6 @@ function EntrepreneurDashboard() {
         console.error("Error parsing stored user:", e);
       }
     }
-
-    if (!token) {
-      setLoading(false);
-      setError("No authentication token found. Please log in first.");
-      return;
-    }
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch dashboard overview KPIs and basic user idea summaries
-        const [dashRes, ideasRes] = await Promise.all([
-          fetch('/api/entrepreneur/dashboard', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }),
-          fetch('/api/entrepreneur/my-ideas', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-        ]);
-
-        if (dashRes.status === 401 || dashRes.status === 403 || ideasRes.status === 401 || ideasRes.status === 403) {
-          setError("Your session has expired or you do not have permission. Please log in again.");
-          localStorage.removeItem('token');
-          setLoading(false);
-          return;
-        }
-
-        if (!dashRes.ok && !ideasRes.ok) {
-          throw new Error("Failed to fetch dashboard data from server.");
-        }
-
-        if (dashRes.ok) {
-          const dashData = await dashRes.json();
-          setDashboardData(dashData);
-          if (dashData.user) {
-            setCurrentUser(dashData.user);
-          }
-        }
-
-        if (ideasRes.ok) {
-          const ideasData = await ideasRes.json();
-          setMyIdeas(Array.isArray(ideasData) ? ideasData : []);
-        }
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-        setError("Could not reach backend API at http://localhost:8080. Please ensure Spring Boot is running.");
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchData();
   }, []);
@@ -400,7 +392,7 @@ function EntrepreneurDashboard() {
         </div>
         
         <nav className="nav-links-sidebar">
-          <Link to="/dashboard" className="sidebar-link active">
+          <Link to="/dashboard" className="sidebar-link active" onClick={fetchData}>
             <div className="sidebar-link-content">
               <LayoutDashboard className="sidebar-icon" size={20} />
               <span>Overview</span>
