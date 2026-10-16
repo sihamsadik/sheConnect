@@ -18,6 +18,20 @@
   margin: 0 auto;
 }
 
+.marketplace-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: #475569;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.marketplace-back-link:hover {
+  color: #2563EB;
+}
+
 .marketplace-title {
   font-size: 2rem;
   font-weight: 800;

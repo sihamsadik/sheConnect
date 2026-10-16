@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
+  ArrowLeft,
   Search,
   Grid,
   List as ListIcon,
@@ -15,6 +17,20 @@ import {
 import './Marketplace.css';
 
 function Marketplace() {
+  let userRole = '';
+  try {
+    userRole = JSON.parse(localStorage.getItem('user') || '{}').role?.toUpperCase().replace(/^ROLE_/, '');
+  } catch {
+    userRole = '';
+  }
+  const dashboardPaths = {
+    ENTREPRENEUR: '/dashboard',
+    ADVISOR: '/advisor',
+    INVESTOR: '/investor',
+    ADMIN: '/admin'
+  };
+  const returnPath = dashboardPaths[userRole] || '/';
+
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -279,6 +295,10 @@ function Marketplace() {
       {/* Header & Search Strip */}
       <header className="marketplace-header">
         <div className="header-content">
+          <Link to={returnPath} className="marketplace-back-link">
+            <ArrowLeft size={18} />
+            {dashboardPaths[userRole] ? 'Back to dashboard' : 'Back home'}
+          </Link>
           <h1 className="marketplace-title">Mentorship Marketplace</h1>
           <p className="marketplace-subtitle">Discover vetted startups seeking strategic guidance, advisory, and investment.</p>
           

@@ -397,7 +397,7 @@ function AdvisorDashboard() {
               <span className="badge-count">{needsAdvisorCount}</span>
             )}
           </button>
-          <Link to="#" className="sidebar-link">
+          <Link to="/marketplace" className="sidebar-link">
             <div className="sidebar-link-content">
               <Globe className="sidebar-icon" size={20} />
               <span>Marketplace</span>
