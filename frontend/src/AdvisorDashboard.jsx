@@ -403,7 +403,7 @@ function AdvisorDashboard() {
               <span>Marketplace</span>
             </div>
           </Link>
-          <Link to="#" className="sidebar-link">
+          <Link to="/my-mentees" className="sidebar-link">
             <div className="sidebar-link-content">
               <Users className="sidebar-icon" size={20} />
               <span>My Mentees</span>

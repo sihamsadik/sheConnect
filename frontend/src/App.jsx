@@ -12,6 +12,7 @@ import AdvisorDashboard from './AdvisorDashboard';
 import Marketplace from './Marketplace';
 import AdvisorProfile from './AdvisorProfile';
 import AdminDashboard from './AdminDashboard';
+import MyMentees from './MyMentees';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/advisor-profile" element={<AdvisorProfile />} />
         <Route path="/advisor-profile/:id" element={<AdvisorProfile />} />
+        <Route path="/my-mentees" element={<MyMentees />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>

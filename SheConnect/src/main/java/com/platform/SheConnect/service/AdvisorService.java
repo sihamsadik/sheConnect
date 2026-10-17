@@ -14,6 +14,7 @@ import com.platform.SheConnect.dto.AdvisorDashboardResponse.MentorshipDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.PendingRequestDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.SessionDto;
 import com.platform.SheConnect.dto.AdvisorProfileResponse;
+import com.platform.SheConnect.dto.MenteeDto;
 import com.platform.SheConnect.entity.AdvisorMentorship;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.repository.AdvisorMentorshipRepository;
@@ -87,6 +88,59 @@ public class AdvisorService {
         resp.setStartupsAdvised(mentorshipRepository.countActiveMenteesByAdvisorId(advisor.getId()));
         resp.setOwner(currentUser != null && currentUser.getId().equals(advisor.getId()));
         return resp;
+    }
+
+    // -----------------------------------------------------------------------
+    // Mentees
+    // -----------------------------------------------------------------------
+
+    public List<MenteeDto> getMentees(User advisor) {
+        List<AdvisorMentorship> all = mentorshipRepository.findByAdvisorId(advisor.getId());
+        return all.stream()
+                .filter(m -> "ACTIVE".equals(m.getStatus()) || "PENDING".equals(m.getStatus()))
+                .map(this::toMenteeDto)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public MenteeDto updateSprintGoal(Long mentorshipId, User advisor, String goal) {
+        AdvisorMentorship m = mentorshipRepository.findById(mentorshipId)
+                .orElseThrow(() -> new com.platform.SheConnect.exception.ResourceNotFoundException(
+                        "Mentorship not found: " + mentorshipId));
+        if (!m.getAdvisor().getId().equals(advisor.getId())) {
+            throw new SecurityException("Not authorized");
+        }
+        m.setSprintGoal(goal);
+        return toMenteeDto(mentorshipRepository.save(m));
+    }
+
+    public void endMentorship(Long mentorshipId, User advisor) {
+        AdvisorMentorship m = mentorshipRepository.findById(mentorshipId)
+                .orElseThrow(() -> new com.platform.SheConnect.exception.ResourceNotFoundException(
+                        "Mentorship not found: " + mentorshipId));
+        if (!m.getAdvisor().getId().equals(advisor.getId())) {
+            throw new SecurityException("Not authorized");
+        }
+        m.setStatus("COMPLETED");
+        mentorshipRepository.save(m);
+    }
+
+    private MenteeDto toMenteeDto(AdvisorMentorship m) {
+        MenteeDto dto = new MenteeDto();
+        dto.setMentorshipId(m.getId());
+        dto.setMenteeId(m.getMentee().getId());
+        dto.setMenteeName(m.getMentee().getName());
+        dto.setMenteeInitials(buildInitials(m.getMentee().getName()));
+        dto.setMenteeEmail(m.getMentee().getEmail());
+        dto.setStartupName(startupName(m));
+        dto.setStartupIndustry(m.getStartupIdea() != null && m.getStartupIdea().getIndustry() != null
+                ? m.getStartupIdea().getIndustry().getName() : "");
+        dto.setStatus(m.getStatus());
+        dto.setMentorshipType(m.getMentorshipType() != null ? m.getMentorshipType() : "Mentorship");
+        dto.setSprintGoal(m.getSprintGoal());
+        dto.setRequestMessage(m.getRequestMessage());
+        dto.setCreatedAt(m.getCreatedAt() != null ? m.getCreatedAt().toString() : null);
+        dto.setUpdatedAt(m.getUpdatedAt() != null ? m.getUpdatedAt().toString() : null);
+        return dto;
     }
 
     // -----------------------------------------------------------------------

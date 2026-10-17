@@ -1,5 +1,6 @@
 package com.platform.SheConnect.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.platform.SheConnect.dto.AdvisorDashboardResponse;
 import com.platform.SheConnect.dto.AdvisorProfileResponse;
+import com.platform.SheConnect.dto.MenteeDto;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
 import com.platform.SheConnect.repository.UserRepository;
@@ -44,6 +46,57 @@ public class AdvisorController {
             return userRepository.findByEmail(str).orElse(null);
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------
+    // GET /api/advisor/mentees
+    // ------------------------------------------------------------------
+
+    @GetMapping("/mentees")
+    public ResponseEntity<List<MenteeDto>> getMentees(Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(advisorService.getMentees(advisor));
+    }
+
+    // ------------------------------------------------------------------
+    // PATCH /api/advisor/mentees/{id}/goal
+    // ------------------------------------------------------------------
+
+    @PatchMapping("/mentees/{id}/goal")
+    public ResponseEntity<MenteeDto> updateGoal(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(advisorService.updateSprintGoal(id, advisor, body.getOrDefault("goal", "")));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // DELETE /api/advisor/mentees/{id}
+    // ------------------------------------------------------------------
+
+    @DeleteMapping("/mentees/{id}")
+    public ResponseEntity<Void> endMentorship(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        try {
+            advisorService.endMentorship(id, advisor);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
     }
 
     // ------------------------------------------------------------------
