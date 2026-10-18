@@ -416,7 +416,7 @@ function AdvisorDashboard() {
             </div>
             <span className="badge-count">5</span>
           </Link>
-          <Link to="#" className="sidebar-link">
+          <Link to="/advisor-settings" className="sidebar-link">
             <div className="sidebar-link-content">
               <Settings className="sidebar-icon" size={20} />
               <span>Settings</span>

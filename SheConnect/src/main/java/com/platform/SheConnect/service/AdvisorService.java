@@ -14,10 +14,14 @@ import com.platform.SheConnect.dto.AdvisorDashboardResponse.MentorshipDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.PendingRequestDto;
 import com.platform.SheConnect.dto.AdvisorDashboardResponse.SessionDto;
 import com.platform.SheConnect.dto.AdvisorProfileResponse;
+import com.platform.SheConnect.dto.AdvisorSettingsDto;
 import com.platform.SheConnect.dto.MenteeDto;
 import com.platform.SheConnect.entity.AdvisorMentorship;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.repository.AdvisorMentorshipRepository;
+import com.platform.SheConnect.repository.UserRepository;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class AdvisorService {
@@ -26,9 +30,55 @@ public class AdvisorService {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
 
     private final AdvisorMentorshipRepository mentorshipRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdvisorService(AdvisorMentorshipRepository mentorshipRepository) {
+    public AdvisorService(AdvisorMentorshipRepository mentorshipRepository,
+                          UserRepository userRepository,
+                          PasswordEncoder passwordEncoder) {
         this.mentorshipRepository = mentorshipRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    // -----------------------------------------------------------------------
+    // Settings
+    // -----------------------------------------------------------------------
+
+    public AdvisorSettingsDto getSettings(User advisor) {
+        AdvisorSettingsDto dto = new AdvisorSettingsDto();
+        dto.setName(advisor.getName());
+        dto.setEmail(advisor.getEmail());
+        dto.setTitle(advisor.getTitle());
+        dto.setLocation(advisor.getLocation());
+        dto.setBio(advisor.getBio());
+        dto.setFocusIndustries(advisor.getFocusIndustries());
+        return dto;
+    }
+
+    public AdvisorSettingsDto updateSettings(User advisor, AdvisorSettingsDto dto) {
+        User managed = userRepository.findById(advisor.getId())
+                .orElseThrow(() -> new com.platform.SheConnect.exception.ResourceNotFoundException("User not found"));
+        if (dto.getName() != null && !dto.getName().isBlank()) managed.setName(dto.getName());
+        if (dto.getTitle() != null) managed.setTitle(dto.getTitle());
+        if (dto.getLocation() != null) managed.setLocation(dto.getLocation());
+        if (dto.getBio() != null) managed.setBio(dto.getBio());
+        if (dto.getFocusIndustries() != null) managed.setFocusIndustries(dto.getFocusIndustries());
+        userRepository.save(managed);
+        return getSettings(managed);
+    }
+
+    public void changePassword(User advisor, String currentPassword, String newPassword) {
+        User managed = userRepository.findById(advisor.getId())
+                .orElseThrow(() -> new com.platform.SheConnect.exception.ResourceNotFoundException("User not found"));
+        if (!passwordEncoder.matches(currentPassword, managed.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("New password must be at least 6 characters.");
+        }
+        managed.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(managed);
     }
 
     // -----------------------------------------------------------------------

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.platform.SheConnect.dto.AdvisorDashboardResponse;
 import com.platform.SheConnect.dto.AdvisorProfileResponse;
+import com.platform.SheConnect.dto.AdvisorSettingsDto;
 import com.platform.SheConnect.dto.MenteeDto;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
@@ -46,6 +47,54 @@ public class AdvisorController {
             return userRepository.findByEmail(str).orElse(null);
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------
+    // GET /api/advisor/settings
+    // ------------------------------------------------------------------
+
+    @GetMapping("/settings")
+    public ResponseEntity<AdvisorSettingsDto> getSettings(Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(advisorService.getSettings(advisor));
+    }
+
+    // ------------------------------------------------------------------
+    // PUT /api/advisor/settings
+    // ------------------------------------------------------------------
+
+    @PutMapping("/settings")
+    public ResponseEntity<AdvisorSettingsDto> updateSettings(
+            @RequestBody AdvisorSettingsDto dto,
+            Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(advisorService.updateSettings(advisor, dto));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // PUT /api/advisor/settings/password
+    // ------------------------------------------------------------------
+
+    @PutMapping("/settings/password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @RequestBody AdvisorSettingsDto dto,
+            Authentication authentication) {
+        User advisor = resolveUser(authentication);
+        if (advisor == null || advisor.getId() == null) return ResponseEntity.status(401).build();
+        try {
+            advisorService.changePassword(advisor, dto.getCurrentPassword(), dto.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // ------------------------------------------------------------------

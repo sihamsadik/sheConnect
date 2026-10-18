@@ -213,7 +213,7 @@ function MyMentees() {
               <MessageSquare className="sidebar-icon" size={20} /><span>Messages</span>
             </div>
           </Link>
-          <Link to="/advisor-profile" className="sidebar-link">
+          <Link to="/advisor-settings" className="sidebar-link">
             <div className="sidebar-link-content">
               <Settings className="sidebar-icon" size={20} /><span>Settings</span>
             </div>
