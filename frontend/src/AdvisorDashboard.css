@@ -65,8 +65,9 @@
 }
 
 .sidebar-link.active {
-  background-color: #EFF6FF;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
   color: #2563EB;
+  font-weight: 600;
 }
 
 .sidebar-link.active .sidebar-icon {
@@ -103,15 +104,16 @@
 .advisor-avatar {
   width: 40px;
   height: 40px;
-  background-color: #EFF6FF;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #2563EB;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.9rem;
   flex-shrink: 0;
-  overflow: hidden;
+  border: 1px solid #BFDBFE;
 }
 
 .advisor-info h5 {
@@ -279,7 +281,14 @@
   border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-top: 3px solid #2563EB;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
 }
 
 .stat-title {
@@ -299,9 +308,9 @@
 }
 
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0F172A;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #2563EB;
 }
 
 /* Two-Column Grid */
@@ -317,7 +326,7 @@
   border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   margin-bottom: 24px;
 }
 
@@ -1111,18 +1120,18 @@ button.sidebar-link {
 .idea-priority-ribbon {
   position: absolute;
   top: 14px;
-  right: -28px;
+  right: 0;
   background: linear-gradient(90deg, #2563EB, #1D4ED8);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
-  padding: 4px 36px 4px 12px;
-  transform: rotate(0deg);
+  padding: 4px 12px 4px 12px;
   display: flex;
   align-items: center;
   gap: 4px;
   border-radius: 4px 0 0 4px;
   letter-spacing: 0.3px;
+  box-shadow: -2px 2px 6px rgba(37,99,235,0.25);
 }
 
 .idea-card-header {

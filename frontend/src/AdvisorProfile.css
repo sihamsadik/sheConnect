@@ -167,37 +167,40 @@
 
 /* --- Quick Stats Strip --- */
 .stats-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .stat-badge {
   background-color: #FFFFFF;
   border-radius: 16px;
-  padding: 24px;
+  padding: 24px 36px;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
   border: 1px solid #E2E8F0;
+  border-top: 3px solid #2563EB;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
+  gap: 8px;
+  min-width: 160px;
 }
 
 .stat-info h4 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0F172A;
-  margin-bottom: 4px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563EB;
+  margin: 0;
 }
 
 .stat-info p {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #64748B;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin: 0;
 }
 
 /* --- Modular Profile Sections --- */
@@ -211,8 +214,9 @@
 
 /* About & Advisory Approach */
 .profile-section.approach-section {
-  background-color: #EFF6FF;
-  border: 1px solid rgba(37, 99, 235, 0.15);
+  background-color: #FAFBFF;
+  border: 1px solid #DBEAFE;
+  border-left: 4px solid #2563EB;
 }
 
 .section-header-box {
@@ -223,21 +227,22 @@
 }
 
 .section-icon-box {
-  width: 48px;
-  height: 48px;
-  background-color: #FFFFFF;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #2563EB;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid #BFDBFE;
 }
 
 .profile-section:not(.approach-section) .section-icon-box {
-  background-color: #F1F5F9;
+  background: #F1F5F9;
   color: #475569;
+  border-color: #E2E8F0;
 }
 
 .section-title {
@@ -268,22 +273,21 @@
 }
 
 .expertise-pill {
-  background-color: #F8FAFC;
-  color: #475569;
-  padding: 8px 16px;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  color: #2563EB;
+  padding: 7px 16px;
   border-radius: 9999px;
   font-weight: 600;
-  font-size: 0.9rem;
-  border: 1px solid #E2E8F0;
+  font-size: 0.88rem;
+  border: 1px solid #BFDBFE;
   transition: all 0.2s ease;
   cursor: default;
 }
 
 .expertise-pill:hover {
-  background-color: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #0F172A;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: #DBEAFE;
+  border-color: #93C5FD;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.12);
 }
 
 /* Executive Experience Timeline */

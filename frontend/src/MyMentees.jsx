@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Rocket, LayoutDashboard, Globe, Users, MessageSquare, Settings,
   Lightbulb, Search, Bell, Loader2, AlertCircle, X, CheckCircle,
-  Edit3, Trash2, ChevronRight, User, Target, Calendar
+  Edit3, Trash2, ChevronRight, User, Target, Calendar, AlertTriangle
 } from 'lucide-react';
 import './MyMentees.css';
 
@@ -338,7 +338,7 @@ function MyMentees() {
       {confirmEnd && (
         <div className="mentees-modal-backdrop" onClick={() => setConfirmEnd(null)}>
           <div className="mentees-confirm-modal" onClick={e => e.stopPropagation()}>
-            <h4>End Mentorship?</h4>
+            <h4><AlertTriangle size={18} style={{ color: '#EF4444' }} /> End Mentorship?</h4>
             <p>This will mark your mentorship with <strong>{confirmEnd.name}</strong> as completed. This cannot be undone.</p>
             <div className="confirm-modal-actions">
               <button className="btn-confirm-end" onClick={handleEndMentorship}>Yes, End It</button>
