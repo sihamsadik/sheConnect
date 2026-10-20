@@ -17,10 +17,11 @@
 /* --- Header & Identity Block --- */
 .profile-header-card {
   background-color: #FFFFFF;
-  border-radius: 16px; /* rounded-2xl */
+  border-radius: 16px;
   padding: 48px 32px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   border: 1px solid #E2E8F0;
+  border-top: 3px solid #2563EB;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,7 +105,7 @@
 }
 
 .btn-profile-primary {
-  background-color: #2563EB;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   color: #FFFFFF;
   border: none;
   padding: 10px 24px;
@@ -115,12 +116,14 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-profile-primary:hover {
-  background-color: #1D4ED8;
+  background: linear-gradient(135deg, #1D4ED8, #1E40AF);
   transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
 .btn-profile-outline {
@@ -157,17 +160,24 @@
   padding: 24px;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
   border: 1px solid #E2E8F0;
+  border-top: 3px solid #2563EB;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
 .stat-info h4 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #0F172A;
+  color: #2563EB;
   margin-bottom: 4px;
 }
 
@@ -186,6 +196,7 @@
   padding: 32px;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
   border: 1px solid #E2E8F0;
+  border-top: 3px solid #2563EB;
 }
 
 .section-header-box {
@@ -198,13 +209,14 @@
 .section-icon-box {
   width: 48px;
   height: 48px;
-  background-color: #EFF6FF;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #2563EB;
   flex-shrink: 0;
+  border: 1px solid #BFDBFE;
 }
 
 .section-title {
@@ -273,22 +285,22 @@
 }
 
 .industry-pill {
-  background-color: #F1F5F9;
-  color: #475569;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  color: #2563EB;
   padding: 8px 16px;
   border-radius: 9999px;
   font-weight: 600;
   font-size: 0.9rem;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #BFDBFE;
   transition: all 0.2s ease;
   cursor: default;
 }
 
 .industry-pill:hover {
-  background-color: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #0F172A;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+  border-color: #93C5FD;
+  color: #1D4ED8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
 }
 
 /* Portfolio Highlights */
@@ -594,18 +606,20 @@
 .btn-browse-startups {
   display: inline-block;
   margin-top: 8px;
-  background-color: #2563EB;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   color: #FFFFFF;
   padding: 8px 18px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.85rem;
   text-decoration: none;
-  transition: background-color 0.2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s;
 }
 
 .btn-browse-startups:hover {
-  background-color: #1D4ED8;
+  background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+  transform: translateY(-1px);
 }
 
 .experience-desc {
@@ -673,7 +687,7 @@
 }
 
 .btn-modal-save {
-  background-color: #2563EB;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   color: #FFFFFF;
   border: none;
   padding: 10px 20px;
@@ -681,10 +695,13 @@
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s;
 }
 
 .btn-modal-save:hover {
-  background-color: #1D4ED8;
+  background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+  transform: translateY(-1px);
 }
 
 .profile-loading-state {
