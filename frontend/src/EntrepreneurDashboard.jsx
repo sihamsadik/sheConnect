@@ -413,7 +413,7 @@ function EntrepreneurDashboard() {
               <span className="badge-count">{dashboardData.totalComments}</span>
             )}
           </Link>
-          <Link to="#" className="sidebar-link">
+          <Link to="/entrepreneur-settings" className="sidebar-link">
             <div className="sidebar-link-content">
               <Settings className="sidebar-icon" size={20} />
               <span>Settings</span>

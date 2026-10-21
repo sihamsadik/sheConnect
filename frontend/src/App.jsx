@@ -15,6 +15,8 @@ import AdminDashboard from './AdminDashboard';
 import MyMentees from './MyMentees';
 import AdvisorSettings from './AdvisorSettings';
 
+import EntrepreneurSettings from './EntrepreneurSettings';
+
 function App() {
   return (
     <Router>
@@ -33,6 +35,7 @@ function App() {
         <Route path="/advisor-profile/:id" element={<AdvisorProfile />} />
         <Route path="/my-mentees" element={<MyMentees />} />
         <Route path="/advisor-settings" element={<AdvisorSettings />} />
+        <Route path="/entrepreneur-settings" element={<EntrepreneurSettings />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>

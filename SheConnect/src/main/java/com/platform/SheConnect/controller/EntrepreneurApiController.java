@@ -1,13 +1,13 @@
 package com.platform.SheConnect.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.session.RequestedUrlRedirectInvalidSessionStrategy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,11 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.platform.SheConnect.dto.CreateStartUpIdeaRequest;
 import com.platform.SheConnect.dto.DashboardResponse;
-import com.platform.SheConnect.dto.LoginResponse;
 import com.platform.SheConnect.dto.StartUpIdeaResponse;
 import com.platform.SheConnect.dto.StartUpIdeaSummary;
 import com.platform.SheConnect.entity.Comment;
-import com.platform.SheConnect.entity.Like;
 import com.platform.SheConnect.entity.StartUpIdea;
 import com.platform.SheConnect.entity.User;
 import com.platform.SheConnect.exception.ResourceNotFoundException;
@@ -44,15 +42,17 @@ public class EntrepreneurApiController {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
-    // private  final StartUpIdeaResponse startUpIdeaResponse;
+    private final PasswordEncoder passwordEncoder;
 
-    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository) {
+    public EntrepreneurApiController(StartUpIdeaService startUpIdeaService, DashboardService dashboardService,
+            UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository,
+            PasswordEncoder passwordEncoder) {
         this.startUpIdeaService = startUpIdeaService;
         this.dashboardService = dashboardService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
-    
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/createstartup-ideas")
@@ -251,5 +251,86 @@ public class EntrepreneurApiController {
         resp.put("bio", fullUser.getBio() != null ? fullUser.getBio() : "");
         resp.put("title", fullUser.getTitle() != null ? fullUser.getTitle() : "");
         return ResponseEntity.ok(resp);
+    }
+
+    // ------------------------------------------------------------------
+    // GET /api/entrepreneur/settings
+    // ------------------------------------------------------------------
+
+    @GetMapping("/settings")
+    public ResponseEntity<Map<String, Object>> getSettings(Authentication authentication) {
+        User user = resolveUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(buildSettingsDto(user));
+    }
+
+    // ------------------------------------------------------------------
+    // PUT /api/entrepreneur/settings
+    // ------------------------------------------------------------------
+
+    @PutMapping("/settings")
+    public ResponseEntity<Map<String, Object>> updateSettings(
+            Authentication authentication,
+            @RequestBody Map<String, String> updates) {
+        User user = resolveUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
+        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").isBlank())
+            user.setName(updates.get("name").trim());
+        if (updates.containsKey("title"))
+            user.setTitle(updates.get("title") != null ? updates.get("title").trim() : "");
+        if (updates.containsKey("bio"))
+            user.setBio(updates.get("bio") != null ? updates.get("bio").trim() : "");
+        userRepository.save(user);
+        return ResponseEntity.ok(buildSettingsDto(user));
+    }
+
+    // ------------------------------------------------------------------
+    // PUT /api/entrepreneur/settings/password
+    // ------------------------------------------------------------------
+
+    @PutMapping("/settings/password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            Authentication authentication,
+            @RequestBody Map<String, String> body) {
+        User user = resolveUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
+        String currentPassword = body.get("currentPassword");
+        String newPassword = body.get("newPassword");
+        if (currentPassword == null || newPassword == null)
+            return ResponseEntity.badRequest().body(Map.of("error", "Both currentPassword and newPassword are required."));
+        if (!passwordEncoder.matches(currentPassword, user.getPassword()))
+            return ResponseEntity.badRequest().body(Map.of("error", "Current password is incorrect."));
+        if (newPassword.length() < 6)
+            return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 6 characters."));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
+    }
+
+    // ------------------------------------------------------------------
+    // Helper: resolve authenticated user from DB
+    // ------------------------------------------------------------------
+
+    private User resolveUser(Authentication authentication) {
+        if (authentication == null) return null;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User u) {
+            if (u.getId() != null) return userRepository.findById(u.getId()).orElse(u);
+            if (u.getEmail() != null) return userRepository.findByEmail(u.getEmail()).orElse(u);
+        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails ud) {
+            return userRepository.findByEmail(ud.getUsername()).orElse(null);
+        } else if (principal instanceof String s && !s.equalsIgnoreCase("anonymousUser")) {
+            return userRepository.findByEmail(s).orElse(null);
+        }
+        return null;
+    }
+
+    private Map<String, Object> buildSettingsDto(User user) {
+        Map<String, Object> dto = new java.util.HashMap<>();
+        dto.put("name", user.getName());
+        dto.put("email", user.getEmail());
+        dto.put("title", user.getTitle() != null ? user.getTitle() : "");
+        dto.put("bio", user.getBio() != null ? user.getBio() : "");
+        return dto;
     }
 }
